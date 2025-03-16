@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAT/Quant - Nexus Hub</title>
+  <title>Learn Questions - Nexus Hub</title>
 
   <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
 
   <!-- Page-Specific CSS -->
   <link rel="stylesheet" href="styles/learn-questions.css" />
@@ -16,10 +19,8 @@
   <div class="header">
     <!-- First row -->
     <div class="header-top">
-      <!-- "CAT" is clickable => goes to your "learn.html" or any diversion page -->
-      <h1 class="brand-title">
-        <a href="learn.html" style="color: #ffcc00; text-decoration: none;">CAT</a> /Quant
-      </h1>
+      <!-- Dynamic brand title set by JS (e.g. "NexusHub / CAT / QUANT") -->
+      <h1 class="brand-title" id="brandTitleEl"></h1>
       <!-- Start Quiz button -->
       <button class="quiz-btn" onclick="startQuiz()">Start Quiz</button>
     </div>
@@ -28,8 +29,8 @@
     <div class="header-bottom">
       <div class="credit">By-Adarsh Kumar</div>
       <div class="controls">
-        <!-- Chapter selection dropdown (shows question counts dynamically) -->
-        <select class="chapter-select" id="chapterSelect" onchange="loadChapter(this.value)">
+        <!-- Sub-Chapter selection dropdown (e.g. "percentage", "ratio") -->
+        <select class="chapter-select" id="subChapterSelect" onchange="onSubChapterChange(this.value)">
           <!-- Options are filled dynamically in JS, each with (# of questions) -->
         </select>
         <div class="action-buttons">
@@ -107,9 +108,7 @@
   </div>
 
   <!-- External JS Libraries -->
-  <!-- Include jsPDF from your local or a CDN. For example: -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
 
   <!-- Main JS script -->
   <script src="scripts/learn-questions.js"></script>

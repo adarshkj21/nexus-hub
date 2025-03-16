@@ -1,190 +1,240 @@
 /****************************************************************************
-  learn-questions.js (Updated to fix your requests)
-  - 1) PDF: uses doc.splitTextToSize, includes answers, colorful layout
-  - 2) Quiz mode uses the currently loaded chapter data, shuffles them
-  - 3) One final outcome per question (correct/incorrect/skipped) in quiz
-  - 4) Dark mode preference saved in localStorage
-  - 5) On-page correctness messages (with emojis), no console pop-ups
+  learn-questions.js
+  * Data structure: "cat_quant" => subChapters => "percentage", "ratio", etc.
+  * Brand Title => "NexusHub / CAT / QUANT" with clickable links
+  * Sub-chapter dropdown => only for the chosen "cat_quant" or "bank_bank_quant"
+  * Notebook => stored per "cat_quant_percentage" or "bank_bank_quant_ratio"
+  * Status panel => clickable boxes (✅, ❌, ⚠️)
+  * Scroll buttons => scroll container or quiz
 ****************************************************************************/
 
-/** The chapter data remains the same as before, except we remove any separate quiz array. **/
-const chapters = {
-    percentage: {
-      name: "Percentage",
-      questions: [
-        {
-          q: "Q1: AB is a 2-digit prime number where A!=B. Reversed is prime. Sum of all such numbers? This question is quite long to test multiline splitting in PDF. We want to ensure it does not get cut off in the PDF. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          a: "50400"
+/** Example top-level data. Each key = "cat_quant", "cat_lrdi", etc.
+    Inside each, we have brandDiversion, brandSection, and subChapters. 
+*/
+const data = {
+    cat_quant: {
+      brandDiversion: "CAT",
+      brandSection: "QUANT",
+      subChapters: {
+        percentage: {
+          name: "Percentage",
+          questions: [
+            { q: "Pct Q1: Some percentage question #1", a: "42" },
+            { q: "Pct Q2: Another percentage question #2", a: "99" }
+          ]
         },
-        {
-          q: "Q2: If m is the # of prime numbers between 0 and 50, and n is the # of prime numbers between 50 and 100, what's (m-n)? Another line of text to ensure multiline wrap in PDF.",
-          a: ""
+        ratio: {
+          name: "Ratio",
+          questions: [
+            { q: "Ratio Q1: Some ratio question #1", a: "1500" }
+          ]
         }
-      ]
+      }
     },
-    weighted_avg: {
-      name: "Weighted Average & Allegation",
-      questions: [
-        { q: "WA Q1: Sample Weighted Average question? Possibly a multiline question here as well.", a: "42" },
-        { q: "WA Q2: Another Weighted Average question, bigger text to test PDF wrapping.", a: "100" }
-      ]
-    },
-    ratio_prop: {
-      name: "Ratio & Proportion",
-      questions: [
-        {
-          q: "RP Q1: A man divided a sum among four sons in ratio 5:7:8:3... Another line of text for testing PDF wrap.",
-          a: "1500"
+    cat_lrdi: {
+      brandDiversion: "CAT",
+      brandSection: "LRDI",
+      subChapters: {
+        sets: {
+          name: "Sets",
+          questions: [
+            { q: "LRDI sets Q1", a: "X" }
+          ]
         }
-      ]
+      }
     },
-    essentials: {
-      name: "Essentials",
-      questions: [
-        { q: "Essentials Q1: Some essential question, but with no official answer provided.", a: "" }
-      ]
+    cat_varc: {
+      brandDiversion: "CAT",
+      brandSection: "VARC",
+      subChapters: {
+        reading: {
+          name: "Reading",
+          questions: [
+            { q: "VARC Q1: Reading question #1", a: "Ok" }
+          ]
+        }
+      }
+    },
+    bank_bank_quant: {
+      brandDiversion: "BANK",
+      brandSection: "BANK-QUANT",
+      subChapters: {
+        percentage: {
+          name: "Bank Pct",
+          questions: [
+            { q: "Bank Pct Q1", a: "501" }
+          ]
+        },
+        ratio: {
+          name: "Bank Ratio",
+          questions: [
+            { q: "Bank Ratio Q1", a: "999" }
+          ]
+        }
+      }
+    },
+    bank_bank_reasoning: {
+      brandDiversion: "BANK",
+      brandSection: "BANK-REASONING",
+      subChapters: {
+        puzzle: {
+          name: "Puzzle",
+          questions: [
+            { q: "Puzzle Q1", a: "No" }
+          ]
+        }
+      }
+    },
+    bank_bank_english: {
+      brandDiversion: "BANK",
+      brandSection: "BANK-ENGLISH",
+      subChapters: {
+        grammar: {
+          name: "Grammar",
+          questions: [
+            { q: "Grammar Q1", a: "Yes" }
+          ]
+        }
+      }
+    },
+    mlai_mlfoundation: {
+      brandDiversion: "MLAI",
+      brandSection: "MLFOUNDATION",
+      subChapters: {
+        basics: {
+          name: "Basics",
+          questions: [
+            { q: "ML Basics Q1", a: "Answer" }
+          ]
+        }
+      }
+    },
+    mlai_advancedai: {
+      brandDiversion: "MLAI",
+      brandSection: "ADVANCEDAI",
+      subChapters: {
+        dl: {
+          name: "Deep Learning",
+          questions: [
+            { q: "DL Q1: Some advanced AI question #1", a: "Neural Net" }
+          ]
+        }
+      }
     }
   };
   
-  /** Global variable to remember which chapter is currently loaded. **/
-  let currentChapterKey = "percentage"; // default
-  
   /** 
-   * Dark mode + localStorage 
-   * - If user chooses dark mode, we store "darkMode" = "true" in localStorage
-   * - On page load, we read it and apply if needed
+   * We read localStorage "diversion" & "section", e.g. "cat", "quant".
+   * Build top-level key => "cat_quant".
+   * Then we only show subChapters for that key (like "percentage", "ratio").
    */
+  let topKey = "cat_quant"; // fallback
+  let currentSubChapter = ""; // e.g. "percentage"
+  let subChapterData = null; // actual question array we are displaying
+  let notebookVisible = false;
+  
+  /** Dark mode, quiz variables, etc. */
+  let quizData = [];
+  let quizIndex = 0;
+  let correctCount = 0;
+  let incorrectCount = 0;
+  let skippedCount = 0;
+  let overallTimer = 0;
+  let questionTimer = 0;
+  let quizInterval = null;
+  let questionInterval = null;
+  
+  /** On page load => read diversion & section, build brand title, fill subChapterSelect, load first sub-chapter by default. */
+  window.addEventListener("DOMContentLoaded", () => {
+    // Dark mode preference
+    const darkPref = localStorage.getItem("darkMode");
+    if (darkPref === "true") {
+      document.body.classList.add("dark-mode");
+    }
+  
+    let diversion = localStorage.getItem("diversion") || "cat";
+    let section = localStorage.getItem("section") || "quant";
+    topKey = `${diversion}_${section}`.toLowerCase(); // e.g. "cat_quant"
+  
+    // If no data found, we fallback
+    if (!data[topKey]) {
+      // fallback if needed
+      topKey = "cat_quant";
+    }
+  
+    // Build brand title => "NexusHub / CAT / QUANT"
+    let brandTitleEl = document.getElementById("brandTitleEl");
+    let brandDiv = data[topKey].brandDiversion.toUpperCase();
+    let brandSec = data[topKey].brandSection.toUpperCase();
+    brandTitleEl.innerHTML = `
+      <a href="index.html" style="color: #ffcc00; text-decoration: none;">NexusHub</a>
+      / <a href="learn.html?diversion=${diversion}" style="color: #ffcc00; text-decoration: none;">${brandDiv}</a>
+      / <a href="learn.html?diversion=${diversion}&section=${section}" style="color: #ffcc00; text-decoration: none;">${brandSec}</a>
+    `;
+  
+    fillSubChapterDropdown();
+    // pick first sub-chapter by default
+    let firstSub = Object.keys(data[topKey].subChapters)[0];
+    loadSubChapter(firstSub);
+    loadNotebookForSubChapter(firstSub);
+  
+    // Notebook
+    document.getElementById("notebookArea").addEventListener("input", () => {
+      saveNotebookForSubChapter(currentSubChapter);
+    });
+  });
+  
+  /** Toggle dark mode => localStorage */
   function toggleDarkMode() {
     document.body.classList.toggle("dark-mode");
     const isDark = document.body.classList.contains("dark-mode");
     localStorage.setItem("darkMode", isDark ? "true" : "false");
   }
   
-  /** 
-   * PDF generation:
-   * - Uses doc.splitTextToSize so no text is cut off
-   * - Also includes "Answer: xyz" if provided
-   * - Adds some color 
-   */
-  function generatePDF() {
-    const { jsPDF } = window.jspdf; // from a valid CDN or local file
-    const doc = new jsPDF("p", "mm", "a4");
-  
-    // A subtle background rectangle for color
-    doc.setFillColor(230, 245, 255); 
-    doc.rect(0, 0, 210, 297, "F"); // fill entire A4 page with a light color
-  
-    // Title
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(255, 0, 0); // bright red for the title
-    doc.text("CAT/Quant - Questions with Answers", 10, 15);
-  
-    // Start listing questions
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-  
-    let yPos = 30; // vertical position
-    const container = document.getElementById("questionsContainer");
-    const cards = container.querySelectorAll(".question-card");
-  
-    cards.forEach((card, index) => {
-      // Grab question text
-      const qNumEl = card.querySelector(".question-number");
-      const qTextEl = card.querySelector(".question-text");
-      const revealEl = card.querySelector(".answer-display"); // "Answer: xyz" or "Answer not provided"
-  
-      let qNum = qNumEl ? qNumEl.textContent : `Question ${index + 1}`;
-      let qText = qTextEl ? qTextEl.textContent : "";
-      let ansText = revealEl ? revealEl.textContent : "Answer not provided";
-  
-      // Prepare multiline
-      let questionLines = doc.splitTextToSize(`${qNum}: ${qText}`, 180);
-      doc.text(questionLines, 15, yPos);
-      yPos += questionLines.length * 5 + 3; // some spacing
-  
-      // color for answer
-      doc.setTextColor(0, 100, 0); // dark green
-      doc.setFont("helvetica", "bold");
-      let answerLines = doc.splitTextToSize(ansText, 180);
-      doc.text(answerLines, 15, yPos);
-      yPos += answerLines.length * 5 + 8;
-  
-      // revert text color
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(0, 0, 0);
-  
-      // if we go near bottom, add new page
-      if (yPos > 270) {
-        doc.addPage();
-        doc.setFillColor(230, 245, 255);
-        doc.rect(0, 0, 210, 297, "F");
-        yPos = 30;
-      }
-    });
-  
-    doc.save("CAT_Quant_Questions.pdf");
-  }
-  
-  /** Scroll up/down */
-  function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-  function scrollToBottom() {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-  }
-  
-  /** Notebook logic */
-  let notebookVisible = false;
-  function toggleNotebook() {
-    const panel = document.getElementById("notebookPanel");
-    notebookVisible = !notebookVisible;
-    panel.style.display = notebookVisible ? "block" : "none";
-  }
-  function saveNotebook() {
-    const text = document.getElementById("notebookArea").value;
-    localStorage.setItem("notebook-guest", text);
-  }
-  function loadNotebook() {
-    const saved = localStorage.getItem("notebook-guest");
-    if (saved) {
-      document.getElementById("notebookArea").value = saved;
+  /** Fill subChapter dropdown => e.g. "percentage (2 Questions), ratio (1 Questions)..." */
+  function fillSubChapterDropdown() {
+    const subChSelect = document.getElementById("subChapterSelect");
+    subChSelect.innerHTML = "";
+    let subChs = data[topKey].subChapters; // e.g. { percentage: { name: "Percentage", questions: [...] }, ratio: {...} }
+    for (let subKey in subChs) {
+      let subObj = subChs[subKey];
+      let count = subObj.questions.length;
+      let opt = document.createElement("option");
+      opt.value = subKey;
+      opt.textContent = `${subObj.name} (${count} Questions)`;
+      subChSelect.appendChild(opt);
     }
   }
   
-  /** Fill the chapter dropdown with "ChapterName (#Questions)" **/
-  function fillChapterDropdown() {
-    const chapterSelect = document.getElementById("chapterSelect");
-    chapterSelect.innerHTML = "";
-    for (const key in chapters) {
-      const data = chapters[key];
-      const count = data.questions.length;
-      const opt = document.createElement("option");
-      opt.value = key;
-      opt.textContent = `${data.name} (${count} Questions)`;
-      chapterSelect.appendChild(opt);
-    }
+  /** Called when user picks a new sub-chapter from the dropdown. */
+  function onSubChapterChange(newSub) {
+    // save old notebook
+    saveNotebookForSubChapter(currentSubChapter);
+    // load new sub-chapter
+    loadSubChapter(newSub);
+    loadNotebookForSubChapter(newSub);
   }
   
-  /** Load a chapter => build question cards (Normal Mode) **/
-  function loadChapter(chapterKey) {
-    currentChapterKey = chapterKey; // store globally so quiz can use same data
-    const container = document.getElementById("questionsContainer");
-    container.innerHTML = ""; // clear old
+  /** Load sub-chapter => build question cards, e.g. data[topKey].subChapters[newSub].questions */
+  function loadSubChapter(subKey) {
+    currentSubChapter = subKey;
   
-    if (!chapters[chapterKey]) {
-      container.innerHTML = `<p>No data found for chapter: ${chapterKey}</p>`;
+    const container = document.getElementById("questionsContainer");
+    container.innerHTML = "";
+  
+    let subObj = data[topKey].subChapters[subKey];
+    if (!subObj) {
+      container.innerHTML = `<p>No data found for sub-chapter: ${subKey}</p>`;
       return;
     }
-    const data = chapters[chapterKey].questions;
+    subChapterData = subObj.questions; // the array we display
   
-    data.forEach((item, index) => {
+    subChapterData.forEach((item, index) => {
       // Card
       const card = document.createElement("div");
       card.classList.add("question-card");
   
-      // left side => question-info
+      // left => question-info
       const qInfo = document.createElement("div");
       qInfo.classList.add("question-info");
   
@@ -200,7 +250,6 @@ const chapters = {
       const ansSection = document.createElement("div");
       ansSection.classList.add("answer-section");
   
-      // input
       const input = document.createElement("input");
       input.type = "text";
       input.classList.add("answer-input");
@@ -212,11 +261,9 @@ const chapters = {
         }
       });
   
-      // On-page correctness display
       const ansResult = document.createElement("div");
       ansResult.classList.add("answer-result");
   
-      // verify button
       const verifyBtn = document.createElement("button");
       verifyBtn.classList.add("check-btn");
       verifyBtn.textContent = "Verify";
@@ -240,7 +287,6 @@ const chapters = {
         }
       });
   
-      // reveal button
       const revealBtn = document.createElement("button");
       revealBtn.classList.add("reveal-btn");
       revealBtn.textContent = "🤔 Reveal Answer";
@@ -272,7 +318,7 @@ const chapters = {
       qInfo.appendChild(qText);
       qInfo.appendChild(ansSection);
   
-      // right side => status panel
+      // Right => status panel => clickable boxes
       const statusPanel = document.createElement("div");
       statusPanel.classList.add("status-panel");
   
@@ -283,30 +329,44 @@ const chapters = {
       const stOptions = document.createElement("div");
       stOptions.classList.add("status-options");
   
-      ["solved","unsolved","revisit"].forEach((val) => {
-        const label = document.createElement("label");
-        const radio = document.createElement("input");
-        radio.type = "radio";
-        radio.name = `status-${chapterKey}-${index}`;
-        radio.value = val;
-        label.appendChild(radio);
-        label.appendChild(document.createTextNode(val));
-        stOptions.appendChild(label);
+      const statuses = [
+        { key: "solved", emoji: "✅", bgClass: "solved" },
+        { key: "unsolved", emoji: "❌", bgClass: "unsolved" },
+        { key: "revisit", emoji: "⚠️", bgClass: "revisit" }
+      ];
   
-        // load from localStorage
-        const storedVal = localStorage.getItem(`status-${chapterKey}-${index}`) || "";
-        if (storedVal === val) {
-          radio.checked = true;
+      statuses.forEach(st => {
+        const box = document.createElement("div");
+        box.classList.add("status-box", st.bgClass);
+        box.textContent = st.emoji;
+  
+        // localStorage key => "status-cat_quant_percentage-index" for example
+        let storeKey = `status-${topKey}-${subKey}-${index}`;
+        let storedVal = localStorage.getItem(storeKey) || "";
+        if (storedVal === st.key) {
+          // highlight
+          box.style.transform = "scale(1.15)";
+          box.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
         }
-        // save on change
-        radio.addEventListener("change", () => {
-          localStorage.setItem(`status-${chapterKey}-${index}`, val);
+  
+        box.addEventListener("click", () => {
+          // store
+          localStorage.setItem(storeKey, st.key);
+          // un-highlight siblings
+          stOptions.querySelectorAll(".status-box").forEach(b => {
+            b.style.transform = "scale(1.0)";
+            b.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+          });
+          // highlight this
+          box.style.transform = "scale(1.15)";
+          box.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
         });
+  
+        stOptions.appendChild(box);
       });
   
       statusPanel.appendChild(stOptions);
   
-      // assemble card
       card.appendChild(qInfo);
       card.appendChild(statusPanel);
   
@@ -314,43 +374,132 @@ const chapters = {
     });
   }
   
-  /** Shuffle an array in place (Fisher-Yates) */
-  function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+  /** 
+   * We'll store the sub-chapter notebook as "notebook-cat_quant_percentage-guest"
+   * So each sub-chapter has a separate notebook
+   */
+  function saveNotebookForSubChapter(subKey) {
+    if (!subKey) return;
+    let text = document.getElementById("notebookArea").value;
+    localStorage.setItem(`notebook-${topKey}-${subKey}-guest`, text);
+  }
+  function loadNotebookForSubChapter(subKey) {
+    if (!subKey) return;
+    let saved = localStorage.getItem(`notebook-${topKey}-${subKey}-guest`);
+    document.getElementById("notebookArea").value = saved || "";
+  }
+  
+  /** 
+   * When user picks a new sub-chapter from the dropdown 
+   * => we save old notebook 
+   * => load new sub-chapter 
+   * => load new notebook 
+   */
+  function onSubChapterChange(newSub) {
+    // save old sub-chapter
+    saveNotebookForSubChapter(currentSubChapter);
+    loadSubChapter(newSub);
+    loadNotebookForSubChapter(newSub);
+  }
+  
+  /** Notebook toggle */
+  function toggleNotebook() {
+    notebookVisible = !notebookVisible;
+    let panel = document.getElementById("notebookPanel");
+    panel.style.display = notebookVisible ? "block" : "none";
+  }
+  
+  /** Scroll Up/Down => container or quiz */
+  function scrollToTop() {
+    let container = document.getElementById("questionsContainer");
+    let quiz = document.getElementById("quizContainer");
+    if (quiz.style.display !== "none") {
+      quiz.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      container.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+  function scrollToBottom() {
+    let container = document.getElementById("questionsContainer");
+    let quiz = document.getElementById("quizContainer");
+    if (quiz.style.display !== "none") {
+      quiz.scrollTo({ top: quiz.scrollHeight, behavior: "smooth" });
+    } else {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     }
   }
   
-  /** QUIZ MODE data and logic, now uses the currently loaded chapter data */
-  let quizData = []; // the shuffled array
-  let quizIndex = 0;
-  let correctCount = 0;
-  let incorrectCount = 0;
-  let skippedCount = 0;
-  let overallTimer = 0;
-  let questionTimer = 0;
-  let quizInterval = null;
-  let questionInterval = null;
+  /** PDF Generation => doc.splitTextToSize for sub-chapter questions */
+  function generatePDF() {
+    const { jsPDF } = window.jspdf; // from CDN
+    const doc = new jsPDF("p", "mm", "a4");
   
-  /** Start quiz => shuffle the currently loaded chapter's questions, use them */
+    doc.setFillColor(230, 245, 255);
+    doc.rect(0, 0, 210, 297, "F");
+  
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(255, 0, 0);
+  
+    // brand text from the header
+    let brandText = document.getElementById("brandTitleEl").textContent || "NexusHub / ???";
+    doc.text(`${brandText} - ${currentSubChapter.toUpperCase()}`, 10, 15);
+  
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+  
+    let yPos = 30;
+    let container = document.getElementById("questionsContainer");
+    let cards = container.querySelectorAll(".question-card");
+  
+    cards.forEach((card, index) => {
+      const qNumEl = card.querySelector(".question-number");
+      const qTextEl = card.querySelector(".question-text");
+      const ansEl = card.querySelector(".answer-display");
+  
+      let qNum = qNumEl ? qNumEl.textContent : `Question ${index+1}`;
+      let qText = qTextEl ? qTextEl.textContent : "";
+      let ansText = ansEl ? ansEl.textContent : "Answer not provided";
+  
+      let questionLines = doc.splitTextToSize(`${qNum}: ${qText}`, 180);
+      doc.text(questionLines, 15, yPos);
+      yPos += questionLines.length * 5 + 3;
+  
+      doc.setTextColor(0, 100, 0);
+      doc.setFont("helvetica", "bold");
+      let answerLines = doc.splitTextToSize(ansText, 180);
+      doc.text(answerLines, 15, yPos);
+      yPos += answerLines.length * 5 + 8;
+  
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "normal");
+  
+      if (yPos > 270) {
+        doc.addPage();
+        doc.setFillColor(230, 245, 255);
+        doc.rect(0, 0, 210, 297, "F");
+        yPos = 30;
+      }
+    });
+  
+    doc.save(`${brandText}_${currentSubChapter.toUpperCase()}.pdf`);
+  }
+  
+  /** QUIZ Mode => we shuffle the sub-chapter data only */
   function startQuiz() {
     document.getElementById("questionsContainer").style.display = "none";
     document.getElementById("quizContainer").style.display = "block";
   
-    // Grab the data from the current chapter
-    if (!chapters[currentChapterKey]) {
-      alert("No chapter data found. Please select a valid chapter first.");
+    if (!subChapterData) {
+      alert("No sub-chapter data found. Please pick a valid sub-chapter first.");
       return;
     }
-    // clone & shuffle
-    quizData = JSON.parse(JSON.stringify(chapters[currentChapterKey].questions));
-    shuffleArray(quizData);
   
-    // add finalState = "unanswered" to each
+    quizData = JSON.parse(JSON.stringify(subChapterData));
+    shuffleArray(quizData);
     quizData.forEach(q => { q.finalState = "unanswered"; });
   
-    // reset counters
     quizIndex = 0;
     correctCount = 0;
     incorrectCount = 0;
@@ -358,7 +507,6 @@ const chapters = {
     overallTimer = 0;
     questionTimer = 0;
   
-    // start timers
     if (quizInterval) clearInterval(quizInterval);
     quizInterval = setInterval(() => {
       overallTimer++;
@@ -378,53 +526,8 @@ const chapters = {
   function endQuiz() {
     document.getElementById("quizContainer").style.display = "none";
     document.getElementById("questionsContainer").style.display = "block";
-  
     if (quizInterval) clearInterval(quizInterval);
     if (questionInterval) clearInterval(questionInterval);
-  }
-  
-  function loadQuizQuestion(idx) {
-    const questionEl = document.getElementById("quizQuestion");
-    const ansInput = document.getElementById("quizAnswerInput");
-    const ansStatus = document.getElementById("quizAnswerStatus");
-    const ansCorrect = document.getElementById("quizCorrectAnswer");
-    const revealBtn = document.getElementById("revealBtn");
-    const verifyBtn = document.getElementById("verifyBtn");
-    const skipBtn = document.getElementById("skipBtn");
-    const nextBtn = document.getElementById("nextBtn");
-  
-    // reset question timer
-    questionTimer = 0;
-    document.getElementById("questionTimer").textContent = `Question Time: 0s`;
-  
-    if (idx >= quizData.length) {
-      // no more questions
-      questionEl.textContent = "No more questions!";
-      ansInput.style.display = "none";
-      ansStatus.style.display = "block";
-      ansStatus.className = "answer-status correct";
-      ansStatus.textContent = "All done!";
-      ansCorrect.style.display = "none";
-      revealBtn.style.display = "none";
-      verifyBtn.style.display = "none";
-      skipBtn.style.display = "none";
-      nextBtn.style.display = "none";
-      return;
-    }
-  
-    // load question
-    const qData = quizData[idx];
-    questionEl.textContent = qData.q;
-    ansInput.style.display = "inline-block";
-    ansInput.value = "";
-    ansStatus.style.display = "none";
-    ansStatus.textContent = "";
-    ansCorrect.style.display = "none";
-    ansCorrect.textContent = "";
-    revealBtn.style.display = "none";
-    verifyBtn.style.display = "inline-block";
-    skipBtn.style.display = "inline-block";
-    nextBtn.style.display = "none";
   }
   
   function updateQuizStats() {
@@ -432,6 +535,47 @@ const chapters = {
     document.getElementById("quizCorrect").textContent = `Correct: ${correctCount}`;
     document.getElementById("quizIncorrect").textContent = `Incorrect: ${incorrectCount}`;
     document.getElementById("quizSkipped").textContent = `Skipped: ${skippedCount}`;
+  }
+  
+  function loadQuizQuestion(idx) {
+    const questionEl = document.getElementById("quizQuestion");
+    const ansInput = document.getElementById("quizAnswerInput");
+    const ansStatus = document.getElementById("quizAnswerStatus");
+    const ansCorrectEl = document.getElementById("quizCorrectAnswer");
+    const revealBtn = document.getElementById("revealBtn");
+    const verifyBtn = document.getElementById("verifyBtn");
+    const skipBtn = document.getElementById("skipBtn");
+    const nextBtn = document.getElementById("nextBtn");
+  
+    questionTimer = 0;
+    document.getElementById("questionTimer").textContent = `Question Time: 0s`;
+  
+    if (idx >= quizData.length) {
+      questionEl.textContent = "No more questions!";
+      ansInput.style.display = "none";
+      ansStatus.style.display = "block";
+      ansStatus.className = "answer-status correct";
+      ansStatus.textContent = "All done!";
+      ansCorrectEl.style.display = "none";
+      revealBtn.style.display = "none";
+      verifyBtn.style.display = "none";
+      skipBtn.style.display = "none";
+      nextBtn.style.display = "none";
+      return;
+    }
+  
+    let qData = quizData[idx];
+    questionEl.textContent = qData.q;
+    ansInput.style.display = "inline-block";
+    ansInput.value = "";
+    ansStatus.style.display = "none";
+    ansStatus.textContent = "";
+    ansCorrectEl.style.display = "none";
+    ansCorrectEl.textContent = "";
+    revealBtn.style.display = "none";
+    verifyBtn.style.display = "inline-block";
+    skipBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
   }
   
   function verifyQuizAnswer() {
@@ -444,13 +588,12 @@ const chapters = {
     const skipBtn = document.getElementById("skipBtn");
     const nextBtn = document.getElementById("nextBtn");
   
-    const userAns = ansInput.value.trim();
-    const qData = quizData[quizIndex];
+    let userAns = ansInput.value.trim();
+    let qData = quizData[quizIndex];
   
     ansStatus.style.display = "block";
-    ansStatus.className = "answer-status"; // reset classes
+    ansStatus.className = "answer-status";
   
-    // if finalState is not "unanswered", do not re-check
     if (qData.finalState && qData.finalState !== "unanswered") {
       ansStatus.classList.add("incorrect");
       ansStatus.textContent = "This question was already answered or skipped.";
@@ -463,17 +606,16 @@ const chapters = {
       return;
     }
   
-    // check correctness
     if (!qData.a) {
       ansStatus.classList.add("incorrect");
       ansStatus.textContent = "❔ Answer not provided by system";
-      qData.finalState = "noanswer"; // we won't increment correct/incorrect
+      qData.finalState = "noanswer";
     } else if (userAns.toLowerCase() === qData.a.toLowerCase()) {
       ansStatus.classList.add("correct");
       ansStatus.textContent = "😊 Correct!";
       correctCount++;
       qData.finalState = "correct";
-      skipBtn.style.display = "none"; // can't skip if correct
+      skipBtn.style.display = "none";
     } else {
       ansStatus.classList.add("incorrect");
       ansStatus.textContent = "😞 Incorrect!";
@@ -482,11 +624,8 @@ const chapters = {
       skipBtn.style.display = "none";
     }
   
-    // show reveal button
     revealBtn.style.display = "inline-block";
-    // hide verify
     verifyBtn.style.display = "none";
-    // show next
     nextBtn.style.display = "inline-block";
   
     updateQuizStats();
@@ -496,7 +635,7 @@ const chapters = {
     if (quizIndex >= quizData.length) return;
     const ansCorrectEl = document.getElementById("quizCorrectAnswer");
     const revealBtn = document.getElementById("revealBtn");
-    const qData = quizData[quizIndex];
+    let qData = quizData[quizIndex];
   
     if (ansCorrectEl.style.display === "none" || ansCorrectEl.style.display === "") {
       ansCorrectEl.style.display = "block";
@@ -513,7 +652,7 @@ const chapters = {
   function skipQuizQuestion() {
     if (quizIndex >= quizData.length) return;
     const ansStatus = document.getElementById("quizAnswerStatus");
-    const qData = quizData[quizIndex];
+    let qData = quizData[quizIndex];
   
     if (qData.finalState === "unanswered") {
       skippedCount++;
@@ -534,23 +673,4 @@ const chapters = {
     loadQuizQuestion(quizIndex);
     updateQuizStats();
   }
-  
-  /** On page load => 
-   * 1) read darkMode preference from localStorage
-   * 2) fill chapters
-   * 3) load default
-   * 4) load notebook
-   */
-  window.addEventListener("DOMContentLoaded", () => {
-    // apply dark mode if user had chosen it
-    const darkPref = localStorage.getItem("darkMode");
-    if (darkPref === "true") {
-      document.body.classList.add("dark-mode");
-    }
-  
-    fillChapterDropdown();
-    loadChapter("percentage"); // default
-    loadNotebook();
-    document.getElementById("notebookArea").addEventListener("input", saveNotebook);
-  });
   

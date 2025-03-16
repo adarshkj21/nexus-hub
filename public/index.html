@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta Information -->
+  <meta charset="UTF-8" />
+  <!-- 
+    We don't set maximum-scale=1.0 here so that users can zoom on mobile if they want,
+    but if you truly need to restrict pinch-zoom, you can add maximum-scale=1.0
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus Hub - Strider21</title>
+  <meta
+    name="description"
+    content="Nexus Hub: Your All-In-One Personal Platform for Learning, Life Management, AI Assistance, and more."
+  />
+  <meta
+    name="keywords"
+    content="Nexus Hub, Strider21, Learn, Life, StriderChat, Sandbox, Calculator, Notebook"
+  />
+
+  <!-- Google Fonts & Favicon -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/themes.css" />
+  <link rel="stylesheet" href="styles/animations.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/responsive.css" />
+  <link rel="stylesheet" href="styles/print.css" />
+</head>
+
+<body>
+  <!-- Preloader Section -->
+  <div id="preloader">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Login Section -->
+  <div id="login-container" class="login-container">
+    <div class="login-box">
+      <header class="login-header">
+        <h1 class="login-title">Welcome to Nexus Hub</h1>
+        <p class="login-tagline">Forge Your Destiny with Unlimited Possibilities</p>
+      </header>
+      <section class="login-form-section">
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter Username" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter Password"
+              required
+            />
+          </div>
+          <div class="form-buttons">
+            <button type="submit" class="login-button">Enter Nexus</button>
+            <!-- Black & Red Guest Button -->
+            <button
+              type="button"
+              id="guest-login-button"
+              class="login-button guest-button"
+            >
+              Continue as Guest
+            </button>
+          </div>
+        </form>
+      </section>
+      <footer class="login-footer">
+        <p>&copy; 2025 Strider21. All Rights Reserved. Version 1.0.0</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Dashboard (Single-Screen on Desktop, Scrollable on Mobile) -->
+  <div id="dashboard" class="dashboard" style="display: none;">
+    <div class="dashboard-wrapper">
+      <!-- Navbar (Top) -->
+      <nav class="navbar">
+        <!-- Left: Brand -->
+        <div class="nav-left">
+          <a href="index.html" class="nav-logo">Nexus Hub</a>
+        </div>
+
+        <!-- Center: Nav Links (including Sandbox) -->
+        <div class="nav-center">
+          <ul class="nav-links">
+            <li class="nav-item"><a href="learn.html">LEARN</a></li>
+            <li class="nav-item"><a href="life.html">LIFE</a></li>
+            <li class="nav-item"><a href="striderchat.html">STRIDERCHAT</a></li>
+            <li class="nav-item dropdown">
+              <a href="#" class="dropbtn">Sandbox ▼</a>
+              <div class="dropdown-content">
+                <a href="#" class="sandbox-option" data-tool="calculator"
+                  >Scientific Calculator</a
+                >
+                <a href="#" class="sandbox-option" data-tool="notebook"
+                  >Notebook</a
+                >
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right: Search & Profile -->
+        <div class="nav-right">
+          <div class="nav-search">
+            <input type="text" id="search-input" placeholder="Search Nexus..." />
+            <button id="search-button">Search</button>
+          </div>
+          <div class="profile-dropdown">
+            <a href="#" class="profile-link">
+              <!-- Public user icon from Flaticon -->
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+                alt="Profile Picture"
+                class="profile-pic"
+              />
+              <span class="profile-name">Profile</span> ▼
+            </a>
+            <div class="dropdown-content profile-menu">
+              <a href="profile.html">My Profile</a>
+              <a href="settings.html">Settings</a>
+              <a href="#" id="logout-button">Logout</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content (Split Hero + Modules in one screen) -->
+      <div class="hero-and-modules">
+        <!-- Left Half: Hero Welcome -->
+        <section class="hero-section">
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <h2>Welcome, <span id="user-name"></span> - Nexus Overlord</h2>
+            <p class="welcome-message">
+              Your journey to mastery begins here. Explore modules, manage your life,
+              and interact with your AI companion—all on one screen.
+            </p>
+          </div>
+        </section>
+
+        <!-- Right Half: Modules Grid -->
+        <section class="modules-section">
+          <div class="modules-container">
+            <div class="module-tile" data-section="learn">
+              <div class="tile-content">
+                <h3>LEARN</h3>
+                <p>Interactive lessons, quizzes, and deep insights.</p>
+              </div>
+              <div class="tile-overlay">
+                <span class="tile-action">Explore Learn</span>
+              </div>
+            </div>
+            <div class="module-tile" data-section="life">
+              <div class="tile-content">
+                <h3>LIFE</h3>
+                <p>Organize your day, set goals, and journal your experiences.</p>
+              </div>
+              <div class="tile-overlay">
+                <span class="tile-action">Manage Life</span>
+              </div>
+            </div>
+            <div class="module-tile" data-section="striderchat">
+              <div class="tile-content">
+                <h3>STRIDERCHAT</h3>
+                <p>AI sidekick for instant answers and creative support.</p>
+              </div>
+              <div class="tile-overlay">
+                <span class="tile-action">Start Chatting</span>
+              </div>
+            </div>
+            <div class="module-tile" data-section="sandbox">
+              <div class="tile-content">
+                <h3>SANDBOX</h3>
+                <p>Experiment with tools: Calculator & Notebook.</p>
+              </div>
+              <div class="tile-overlay">
+                <span class="tile-action">Enter Sandbox</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer (Bottom) -->
+      <footer class="dashboard-footer">
+        <div class="footer-links">
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="help.html">Help & FAQ</a>
+          <!-- Your GitHub link -->
+          <a href="https://github.com/adarshkj21" target="_blank">GitHub</a>
+        </div>
+        <div class="footer-copy">
+          <p>
+            &copy; 2025 Strider21. Nexus Hub is a creation of limitless
+            imagination. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- External Scripts -->
+  <script src="scripts/main.js"></script>
+</body>
+</html>

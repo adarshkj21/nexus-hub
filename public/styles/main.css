@@ -1,0 +1,514 @@
+/* =====================================================
+   Desktop vs. Mobile/Tablet Scroll Behavior
+   -----------------------------------------------------
+   On desktop (≥ 993px): no scroll (overflow hidden)
+   On mobile/tablet (< 993px): normal scrolling
+===================================================== */
+
+/* Default (desktop) */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* No scroll on desktop */
+  font-family: 'Poppins', sans-serif;
+  background-color: #0a0a2a;
+  color: #fff;
+}
+
+/* Mobile/Tablet override (< 993px) */
+@media (max-width: 992px) {
+  html, body {
+    overflow-y: auto; /* Allow vertical scrolling on smaller screens */
+    overflow-x: hidden;
+    height: auto;
+  }
+}
+
+/* =====================================================
+   Global Box Sizing
+===================================================== */
+* {
+  box-sizing: border-box;
+}
+
+/* =====================================================
+   Preloader
+===================================================== */
+#preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0a0a2a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.loader {
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #ffcc00;
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* =====================================================
+   Login Section
+===================================================== */
+.login-container {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0a2a, #1a1a40);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.login-box {
+  background-color: rgba(0, 0, 0, 0.85);
+  padding: 40px;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.login-title {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  color: #ffcc00;
+}
+.login-tagline {
+  font-size: 1.3rem;
+  color: #fff;
+}
+.login-form-section {
+  margin-bottom: 20px;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+.form-group input {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+.form-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.login-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #ffcc00;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.login-button:hover {
+  background-color: #e6b800;
+  transform: scale(1.02);
+}
+/* Black & Red guest button */
+.guest-button {
+  background-color: #000;
+  color: #fff;
+  border: 2px solid red;
+}
+.guest-button:hover {
+  background-color: red;
+  color: #fff;
+}
+.login-footer {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #ccc;
+  margin-top: 20px;
+}
+
+/* =====================================================
+   Dashboard
+===================================================== */
+.dashboard {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+.dashboard-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Navbar (Top) */
+.navbar {
+  background-color: #1a1a40;
+  padding: 15px 30px;
+  border-bottom: 3px solid #ffcc00;
+  flex-shrink: 0; /* Keep navbar from shrinking */
+  position: relative;
+  z-index: 999;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Left: Brand */
+.nav-left {
+  display: inline-flex;
+  align-items: center;
+}
+.nav-logo {
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: #ffcc00;
+  text-decoration: none;
+}
+
+/* Center: Nav Links (including Sandbox) */
+.nav-center {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+.nav-links {
+  list-style: none;
+  display: inline-flex;
+  gap: 20px;
+}
+.nav-item a {
+  text-decoration: none;
+  color: #fff;
+  font-size: 1.1rem;
+  padding: 10px 15px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.nav-item a:hover {
+  background-color: #ffcc00;
+  color: #0a0a2a;
+  border-radius: 5px;
+}
+
+/* Right: Search + Profile */
+.nav-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Search */
+.nav-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.nav-search input[type="text"] {
+  padding: 8px 12px;
+  border-radius: 5px 0 0 5px;
+  border: none;
+}
+#search-button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #ffcc00;
+  border-radius: 0 5px 5px 0;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+#search-button:hover {
+  background-color: #e6b800;
+}
+
+/* Sandbox & Profile dropdowns */
+.dropdown, .profile-dropdown {
+  position: relative;
+}
+.dropbtn, .profile-link {
+  text-decoration: none;
+  color: #fff;
+  font-size: 1.1rem;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.dropbtn:hover, .profile-link:hover {
+  background-color: #ffcc00;
+  color: #0a0a2a;
+  border-radius: 5px;
+}
+.dropdown-content, .profile-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  background-color: #1a1a40;
+  min-width: 180px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  z-index: 9999;
+  border-radius: 5px;
+  padding: 10px 0;
+}
+.dropdown-content a, .profile-menu a {
+  color: #fff;
+  padding: 10px 20px;
+  text-decoration: none;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+.dropdown-content a:hover, .profile-menu a:hover {
+  background-color: #ffcc00;
+  color: #0a0a2a;
+}
+.dropdown:hover .dropdown-content,
+.profile-dropdown:hover .profile-menu {
+  display: block;
+}
+
+/* Profile Pic */
+.profile-pic {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 2px solid #ffcc00;
+}
+
+/* Hero + Modules + Footer */
+.hero-and-modules {
+  flex: 1; /* Fill leftover space */
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hero-section {
+  position: relative;
+  width: 60%;
+  height: 100%;
+  background: url('../assets/images/hero-bg.jpg') center center/cover no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(10, 10, 42, 0.7);
+  z-index: 1;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+.hero-content h2 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+.welcome-message {
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+.hero-section:hover .hero-content {
+  transform: scale(1.02);
+}
+.modules-section {
+  width: 40%;
+  height: 100%;
+  background-color: #0a0a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modules-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.module-tile {
+  position: relative;
+  background-color: #000; /* black */
+  border: 3px solid red;   /* red border */
+  border-radius: 15px;
+  padding: 20px;
+  height: 180px;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+.module-tile:hover {
+  transform: scale(1.05);
+  opacity: 0.95;
+}
+.tile-content h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: red; /* Red text to match combo */
+}
+.tile-content p {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.tile-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  background: linear-gradient(135deg, #000 50%, red 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.5s ease;
+  z-index: 1;
+}
+.module-tile:hover .tile-overlay {
+  height: 100%;
+}
+.tile-action {
+  font-size: 1.1rem;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.3s;
+}
+.module-tile:hover .tile-action {
+  opacity: 1;
+  color: #fff;
+}
+
+/* Footer */
+.dashboard-footer {
+  background-color: #0a0a2a;
+  flex-shrink: 0; /* Keep footer at bottom */
+  padding: 15px 20px;
+  text-align: center;
+  border-top: 3px solid #ffcc00;
+}
+.footer-links {
+  margin-bottom: 10px;
+}
+.footer-links a {
+  color: #ffcc00;
+  margin: 0 10px;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+.footer-links a:hover {
+  color: red;
+}
+.footer-copy {
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+/* =====================================================
+   Responsive Layout
+===================================================== */
+/* 
+   Under 993px, we allow scrolling,
+   stack hero & modules vertically,
+   and refine styling for small screens
+*/
+@media (max-width: 992px) {
+  .navbar {
+    flex-wrap: wrap; /* Nav items wrap neatly */
+    padding: 10px 20px;
+  }
+  .nav-left, .nav-center, .nav-right {
+    flex: 1 1 100%;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  /* Smaller brand text */
+  .nav-logo {
+    font-size: 2rem;
+  }
+
+  .hero-and-modules {
+    flex-direction: column;
+    height: auto;
+  }
+  .hero-section {
+    width: 100%;
+    height: auto;
+    min-height: 50vh; /* ensures a decent hero area */
+  }
+  .modules-section {
+    width: 100%;
+    height: auto;
+    min-height: 50vh; /* ensures enough space for modules */
+    padding: 10px;
+  }
+  .hero-content h2 {
+    font-size: 2rem;
+  }
+  .welcome-message {
+    font-size: 1rem;
+  }
+  .modules-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: 45vh;
+  }
+  .modules-section {
+    min-height: 55vh;
+  }
+  .modules-container {
+    grid-template-columns: 1fr;
+  }
+  .module-tile {
+    height: 160px;
+  }
+  .tile-content h3 {
+    font-size: 1rem;
+  }
+  .tile-content p {
+    font-size: 0.9rem;
+  }
+}

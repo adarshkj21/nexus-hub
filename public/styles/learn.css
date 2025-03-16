@@ -1,0 +1,125 @@
+/* =====================================================
+   learn.css - Minimalist & Modern Design for Learn Module
+===================================================== */
+
+/* Base Reset and Typography */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  html, body {
+    font-family: 'Poppins', sans-serif;
+    background: #fafafa;
+    color: #333;
+    overflow-x: hidden;
+  }
+  
+  /* ---------- Header ---------- */
+  .learn-header {
+    background: linear-gradient(135deg, #1d2b64, #f8cdda);
+    color: #fff;
+    padding: 2rem 1rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .learn-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .learn-header p {
+    font-size: 1.3rem;
+    opacity: 0.9;
+  }
+  
+  /* ---------- Main Selection Container ---------- */
+  .selection-container {
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 1rem;
+  }
+  
+  /* Diversion & Section Blocks */
+  .diversion-section,
+  .section-section,
+  .proceed-section {
+    margin-bottom: 2.5rem;
+    text-align: center;
+  }
+  .diversion-section h2,
+  .section-section h2 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    color: #1d2b64;
+  }
+  
+  /* Button Group for Options */
+  .diversion-options,
+  .section-options {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  /* Option Buttons */
+  .diversion-btn,
+  .section-btn {
+    background: #1d2b64;
+    color: #fff;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+  .diversion-btn:hover,
+  .section-btn:hover {
+    background: #162a50;
+    transform: translateY(-3px);
+  }
+  
+  /* Back and Proceed Buttons */
+  .back-btn,
+  .proceed-btn {
+    background: #ff6f61;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+    margin-top: 1.5rem;
+  }
+  .back-btn:hover,
+  .proceed-btn:hover {
+    background: #e65a50;
+    transform: translateY(-2px);
+  }
+  
+  /* ---------- Responsive Adjustments ---------- */
+  @media (max-width: 768px) {
+    .learn-header h1 {
+      font-size: 2.5rem;
+    }
+    .learn-header p {
+      font-size: 1.1rem;
+    }
+    .diversion-btn,
+    .section-btn {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+    }
+    .back-btn,
+    .proceed-btn {
+      font-size: 1rem;
+      padding: 0.7rem 1.4rem;
+    }
+  }
+  

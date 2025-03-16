@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learn Module - Nexus Hub</title>
+  <!-- Link to the Learn module CSS (you can further expand this file later) -->
+  <link rel="stylesheet" href="styles/learn.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="learn-header">
+    <h1>Nexus Hub - Learn Module</h1>
+    <p>Please select your diversion and then your section.</p>
+  </header>
+
+  <!-- Main Selection Container -->
+  <div class="selection-container">
+    <!-- Diversion Selection -->
+    <section class="diversion-section">
+      <h2>Choose Diversion</h2>
+      <div class="diversion-options">
+        <button class="diversion-btn" data-diversion="cat">CAT</button>
+        <button class="diversion-btn" data-diversion="mlai">ML/AI</button>
+        <button class="diversion-btn" data-diversion="bank">Bank Exam</button>
+      </div>
+    </section>
+
+    <!-- Section Selection (appears after diversion is picked) -->
+    <section class="section-section" id="sectionSection" style="display:none;">
+      <h2>Choose Section</h2>
+      <div class="section-options" id="sectionOptions">
+        <!-- Options will be populated dynamically -->
+      </div>
+      <button class="back-btn" id="backToDiversion">← Back</button>
+    </section>
+
+    <!-- Proceed Button (appears after section is chosen) -->
+    <section class="proceed-section" id="proceedSection" style="display:none;">
+      <button class="proceed-btn" id="proceedBtn">Proceed to Questions</button>
+    </section>
+  </div>
+
+  <!-- Learn module JS -->
+  <script src="scripts/learn.js"></script>
+</body>
+</html>

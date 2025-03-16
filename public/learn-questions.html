@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAT/Quant - Nexus Hub</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Page-Specific CSS -->
+  <link rel="stylesheet" href="styles/learn-questions.css" />
+</head>
+<body>
+  <!-- Header (Pinned, no footer) -->
+  <div class="header">
+    <!-- First row -->
+    <div class="header-top">
+      <!-- "CAT" is clickable => goes to your "learn.html" or any diversion page -->
+      <h1 class="brand-title">
+        <a href="learn.html" style="color: #ffcc00; text-decoration: none;">CAT</a> /Quant
+      </h1>
+      <!-- Start Quiz button -->
+      <button class="quiz-btn" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <!-- Second row -->
+    <div class="header-bottom">
+      <div class="credit">By-Adarsh Kumar</div>
+      <div class="controls">
+        <!-- Chapter selection dropdown (shows question counts dynamically) -->
+        <select class="chapter-select" id="chapterSelect" onchange="loadChapter(this.value)">
+          <!-- Options are filled dynamically in JS, each with (# of questions) -->
+        </select>
+        <div class="action-buttons">
+          <!-- Dark Mode toggle -->
+          <button class="icon-btn" onclick="toggleDarkMode()">🌓</button>
+          <!-- Download PDF (jsPDF-based) -->
+          <button class="icon-btn" onclick="generatePDF()">📥</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll Buttons (pinned) -->
+  <div class="scroll-buttons">
+    <button class="scroll-btn" onclick="scrollToTop()">↑</button>
+    <button class="scroll-btn" onclick="scrollToBottom()">↓</button>
+  </div>
+
+  <!-- Notebook in bottom-left corner -->
+  <div id="notebookToggle" class="notebook-toggle" onclick="toggleNotebook()">📓</div>
+  <div id="notebookPanel" class="notebook-panel" style="display:none;">
+    <h3>Notebook</h3>
+    <textarea id="notebookArea" placeholder="Write notes here..."></textarea>
+  </div>
+
+  <!-- Main Questions Container (scrollable) -->
+  <div class="container" id="questionsContainer">
+    <!-- Dynamically loaded question cards go here -->
+  </div>
+
+  <!-- Quiz Container (hidden by default) -->
+  <div id="quizContainer">
+    <div class="quiz-header">
+      <h2>Quiz Mode</h2>
+      <button class="back-btn" onclick="endQuiz()">Back to Questions</button>
+    </div>
+
+    <div class="quiz-stats">
+      <span id="quizProgress">Question 0/0</span>
+      <span id="quizCorrect">Correct: 0</span>
+      <span id="quizIncorrect">Incorrect: 0</span>
+      <span id="quizSkipped">Skipped: 0</span>
+    </div>
+
+    <div class="quiz-timers">
+      <span id="questionTimer">Question Time: 0s</span>
+      <span id="overallTimer">Overall Time: 0s</span>
+    </div>
+
+    <div class="quiz-question-card">
+      <div class="quiz-question" id="quizQuestion">Question text will appear here</div>
+      <div class="quiz-answer-section">
+        <input
+          type="text"
+          id="quizAnswerInput"
+          class="answer-input"
+          placeholder="Your answer..."
+          onkeydown="if(event.key==='Enter'){ verifyQuizAnswer(); }"
+        />
+        <!-- On-page correctness feedback (no pop-ups) -->
+        <div id="quizAnswerStatus" class="answer-status" style="display:none;"></div>
+
+        <!-- Real correct answer display if revealed -->
+        <div class="answer" id="quizCorrectAnswer" style="display:none;"></div>
+
+        <!-- Buttons row -->
+        <div class="quiz-btn-row">
+          <button id="verifyBtn" class="next-btn" onclick="verifyQuizAnswer()">Verify</button>
+          <button id="revealBtn" class="reveal-btn" style="display:none;" onclick="revealQuizAnswer()">Reveal</button>
+          <button id="skipBtn" class="skip-btn" onclick="skipQuizQuestion()">Skip</button>
+          <button id="nextBtn" class="next-btn" style="display:none;" onclick="nextQuizQuestion()">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- External JS Libraries -->
+  <!-- Include jsPDF from your local or a CDN. For example: -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+
+  <!-- Main JS script -->
+  <script src="scripts/learn-questions.js"></script>
+</body>
+</html>

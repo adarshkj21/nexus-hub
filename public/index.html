@@ -3,10 +3,6 @@
 <head>
   <!-- Meta Information -->
   <meta charset="UTF-8" />
-  <!-- 
-    We don't set maximum-scale=1.0 here so that users can zoom on mobile if they want,
-    but if you truly need to restrict pinch-zoom, you can add maximum-scale=1.0
-  -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nexus Hub - Strider21</title>
   <meta
@@ -115,7 +111,15 @@
         <div class="nav-right">
           <div class="nav-search">
             <input type="text" id="search-input" placeholder="Search Nexus..." />
-            <button id="search-button">Search</button>
+            <!-- The search button now has an icon -->
+            <button id="search-button">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/1086/1086933.png"
+                alt="Search Icon"
+                class="search-icon"
+              />
+              Search
+            </button>
           </div>
           <div class="profile-dropdown">
             <a href="#" class="profile-link">

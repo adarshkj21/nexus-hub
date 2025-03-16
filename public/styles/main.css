@@ -166,12 +166,14 @@ html, body {
   position: relative;
 }
 
-/* Navbar (Top) */
+/* ========================= NAVBAR ========================= */
 .navbar {
-  background-color: #1a1a40;
-  padding: 15px 30px;
+  /* Fancy gradient + subtle glow + box shadow */
+  background: linear-gradient(90deg, #1a1a40, #0d0d2d);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
   border-bottom: 3px solid #ffcc00;
-  flex-shrink: 0; /* Keep navbar from shrinking */
+  padding: 15px 30px;
+  flex-shrink: 0;
   position: relative;
   z-index: 999;
   overflow: visible;
@@ -180,19 +182,24 @@ html, body {
   justify-content: space-between;
 }
 
-/* Left: Brand */
+/* Left: Brand with neon glow */
 .nav-left {
   display: inline-flex;
   align-items: center;
 }
 .nav-logo {
-  font-size: 2.3rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #ffcc00;
   text-decoration: none;
+  text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
+  transition: transform 0.3s ease;
+}
+.nav-logo:hover {
+  transform: scale(1.08);
 }
 
-/* Center: Nav Links (including Sandbox) */
+/* Center: Nav Links with pill hover effect */
 .nav-center {
   display: inline-flex;
   align-items: center;
@@ -202,29 +209,28 @@ html, body {
 .nav-links {
   list-style: none;
   display: inline-flex;
-  gap: 20px;
+  gap: 25px;
 }
 .nav-item a {
   text-decoration: none;
   color: #fff;
   font-size: 1.1rem;
-  padding: 10px 15px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 8px 16px;
+  border-radius: 20px; /* pill shape */
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 .nav-item a:hover {
-  background-color: #ffcc00;
-  color: #0a0a2a;
-  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.04);
+  color: #ffcc00;
 }
 
-/* Right: Search + Profile */
+/* Right: Search & Profile with slight glow on hover */
 .nav-right {
   display: inline-flex;
   align-items: center;
   gap: 20px;
 }
-
-/* Search */
 .nav-search {
   display: inline-flex;
   align-items: center;
@@ -234,21 +240,31 @@ html, body {
   padding: 8px 12px;
   border-radius: 5px 0 0 5px;
   border: none;
+  outline: none;
 }
 #search-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 8px 16px;
   border: none;
   background-color: #ffcc00;
   border-radius: 0 5px 5px 0;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 #search-button:hover {
   background-color: #e6b800;
+  transform: scale(1.05);
+}
+.search-icon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(0);
 }
 
-/* Sandbox & Profile dropdowns */
+/* Dropdowns with glow effect on hover */
 .dropdown, .profile-dropdown {
   position: relative;
 }
@@ -256,16 +272,17 @@ html, body {
   text-decoration: none;
   color: #fff;
   font-size: 1.1rem;
-  padding: 10px 15px;
+  padding: 8px 16px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
   display: inline-flex;
   align-items: center;
 }
 .dropbtn:hover, .profile-link:hover {
-  background-color: #ffcc00;
-  color: #0a0a2a;
-  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.04);
+  color: #ffcc00;
 }
 .dropdown-content, .profile-menu {
   display: none;
@@ -274,9 +291,9 @@ html, body {
   left: 0;
   background-color: #1a1a40;
   min-width: 180px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.5);
   z-index: 9999;
-  border-radius: 5px;
+  border-radius: 8px;
   padding: 10px 0;
 }
 .dropdown-content a, .profile-menu a {
@@ -284,11 +301,12 @@ html, body {
   padding: 10px 20px;
   text-decoration: none;
   display: block;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 .dropdown-content a:hover, .profile-menu a:hover {
-  background-color: #ffcc00;
-  color: #0a0a2a;
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.02);
+  color: #ffcc00;
 }
 .dropdown:hover .dropdown-content,
 .profile-dropdown:hover .profile-menu {
@@ -304,7 +322,7 @@ html, body {
   border: 2px solid #ffcc00;
 }
 
-/* Hero + Modules + Footer */
+/* ==================== Hero + Modules + Footer ==================== */
 .hero-and-modules {
   flex: 1; /* Fill leftover space */
   display: flex;
@@ -342,6 +360,7 @@ html, body {
   font-size: 2.8rem;
   font-weight: 700;
   margin-bottom: 15px;
+  text-shadow: 0 0 6px rgba(255,255,255,0.2);
 }
 .welcome-message {
   font-size: 1.2rem;
@@ -446,14 +465,9 @@ html, body {
 /* =====================================================
    Responsive Layout
 ===================================================== */
-/* 
-   Under 993px, we allow scrolling,
-   stack hero & modules vertically,
-   and refine styling for small screens
-*/
 @media (max-width: 992px) {
   .navbar {
-    flex-wrap: wrap; /* Nav items wrap neatly */
+    flex-wrap: wrap;
     padding: 10px 20px;
   }
   .nav-left, .nav-center, .nav-right {
@@ -461,12 +475,19 @@ html, body {
     justify-content: center;
     margin-bottom: 10px;
   }
-
-  /* Smaller brand text */
   .nav-logo {
     font-size: 2rem;
   }
-
+  .nav-links {
+    gap: 15px;
+  }
+  .nav-item a {
+    font-size: 1rem;
+    padding: 6px 12px;
+  }
+  #search-button {
+    padding: 6px 10px;
+  }
   .hero-and-modules {
     flex-direction: column;
     height: auto;
@@ -474,12 +495,12 @@ html, body {
   .hero-section {
     width: 100%;
     height: auto;
-    min-height: 50vh; /* ensures a decent hero area */
+    min-height: 50vh;
   }
   .modules-section {
     width: 100%;
     height: auto;
-    min-height: 50vh; /* ensures enough space for modules */
+    min-height: 50vh;
     padding: 10px;
   }
   .hero-content h2 {
@@ -493,12 +514,6 @@ html, body {
   }
 }
 @media (max-width: 480px) {
-  .hero-section {
-    min-height: 45vh;
-  }
-  .modules-section {
-    min-height: 55vh;
-  }
   .modules-container {
     grid-template-columns: 1fr;
   }

@@ -44,7 +44,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Fetch all chapters from the backend
   try {
-    const res = await fetch("http://localhost:5004/api/chapters");
+    const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/chapters");
     const chapters = await res.json();
     // Filter chapters by diversion and section (case-insensitive)
     currentChapterData = chapters.find(ch => 

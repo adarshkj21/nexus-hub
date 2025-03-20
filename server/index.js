@@ -1,24 +1,31 @@
+// server/index.js
+
 const express = require('express');
-const path = require('path');
-require('dotenv').config();
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const questRoutes = require('./routes/quest');
+const cors = require('cors');
 
-// Initialize Express
+dotenv.config();
+
+connectDB();
+
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware: Parse JSON and URL-encoded bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware
+app.use(express.json()); // For parsing application/json
+app.use(cors());         // Enable CORS for all requests
 
-// Serve static files from the public folder
-app.use(express.static(path.join(__dirname, '../public')));
+// Mount API routes
+app.use('/api/chapters', questRoutes);
 
-// Basic route: For now, redirect all routes to index.html (Single Page Application approach)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+// Basic route
+app.get('/', (req, res) => {
+  res.send('Backend API for NexusHub - Learn Module');
 });
 
-// Start the server
+const PORT = process.env.PORT || 5004;
+
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

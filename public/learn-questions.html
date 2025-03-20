@@ -28,17 +28,29 @@
     <!-- Second row -->
     <div class="header-bottom">
       <div class="credit">By-Adarsh Kumar</div>
+
+      <!-- The "controls" area: sub-chapter dropdown, search, StriderChat, dark mode, PDF -->
       <div class="controls">
-        <!-- Sub-Chapter selection dropdown (e.g. "percentage", "ratio") -->
+        <!-- Sub-Chapter selection dropdown (like "percentage," "ratio," etc.) -->
         <select class="chapter-select" id="subChapterSelect" onchange="onSubChapterChange(this.value)">
-          <!-- Options are filled dynamically in JS, each with (# of questions) -->
+          <!-- Filled dynamically in JS -->
         </select>
-        <div class="action-buttons">
-          <!-- Dark Mode toggle -->
-          <button class="icon-btn" onclick="toggleDarkMode()">🌓</button>
-          <!-- Download PDF (jsPDF-based) -->
-          <button class="icon-btn" onclick="generatePDF()">📥</button>
+
+        <!-- Search container -->
+        <div class="search-container">
+          <input type="text" id="searchInput" placeholder="Search questions..." />
+          <button class="icon-btn" onclick="searchQuestions()">🔍</button>
+          <!-- CLEAR button to reset the search -->
+          <button class="icon-btn" onclick="clearSearch()">Clear</button>
         </div>
+
+        <!-- StriderChat link -->
+        <a href="striderchat.html" class="icon-btn">StriderChat</a>
+
+        <!-- Dark Mode toggle -->
+        <button class="icon-btn" onclick="toggleDarkMode()">🌓</button>
+        <!-- Download PDF -->
+        <button class="icon-btn" onclick="generatePDF()">📥</button>
       </div>
     </div>
   </div>
@@ -104,6 +116,11 @@
           <button id="nextBtn" class="next-btn" style="display:none;" onclick="nextQuizQuestion()">Next</button>
         </div>
       </div>
+    </div>
+
+    <!-- Once quiz is done, show a "Restart Quiz" button -->
+    <div style="margin-top:1rem; display:none;" id="quizRestartContainer">
+      <button class="next-btn" style="background:#ff9800;" onclick="restartQuiz()">Restart Quiz</button>
     </div>
   </div>
 

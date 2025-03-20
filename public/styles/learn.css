@@ -1,125 +1,200 @@
-/* =====================================================
-   learn.css - Minimalist & Modern Design for Learn Module
-===================================================== */
+/***************************************************************
+  learn.css - "Grand & Premium" Design
+  For use with learn.html
+  - Rich, vibrant gradients
+  - Larger box shadows
+  - Fancier typography
+  - Hover animations & transitions
+  - Preserves existing class names & structure
+***************************************************************/
 
-/* Base Reset and Typography */
+/* ========== Global Resets & Body Styles ========== */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  html, body {
-    font-family: 'Poppins', sans-serif;
-    background: #fafafa;
-    color: #333;
-    overflow-x: hidden;
-  }
-  
-  /* ---------- Header ---------- */
-  .learn-header {
-    background: linear-gradient(135deg, #1d2b64, #f8cdda);
-    color: #fff;
-    padding: 2rem 1rem;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  .learn-header h1 {
-    font-size: 3rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  }
-  .learn-header p {
-    font-size: 1.3rem;
-    opacity: 0.9;
-  }
-  
-  /* ---------- Main Selection Container ---------- */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+  overflow-x: hidden; /* no horizontal scroll */
+  background: linear-gradient(135deg, #1b1b2f, #3a0088);
+  /* The above gradient is deep purple & navy. 
+     You can change to any vibrant combo you like. */
+  background-attachment: fixed; /* for a "premium" feel on large screens */
+  background-size: cover;
+  background-repeat: no-repeat;
+  transition: all 0.4s ease;
+}
+
+/* ========== Learn Header ========== */
+.learn-header {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(45deg, #ff004c, #0f9b0f);
+  /* Vibrant pink & green diagonal gradient */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 1;
+}
+.learn-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+}
+.learn-header p {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #fff;
+  margin-top: 0.5rem;
+}
+
+/* ========== Main Container ========== */
+.selection-container {
+  max-width: 700px;
+  margin: -3rem auto 3rem auto; /* pulls up to overlap the header a bit */
+  background: rgba(255,255,255,0.1);
+  /* semi‐transparent white for a "frosted" effect */
+  backdrop-filter: blur(10px);
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 2;
+  margin-top: -2rem; /* slight overlap with the header */
+}
+
+/* A subtle border around the container */
+.selection-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 20px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ========== Sections ========== */
+.diversion-section,
+.section-section,
+.proceed-section {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.diversion-section h2,
+.section-section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #ffdf00; /* gold-ish color for headings */
+  text-shadow: 1px 1px 6px rgba(0,0,0,0.4);
+}
+
+.diversion-options,
+.section-options {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ========== Buttons (Diversion, Section, Proceed, Back) ========== */
+.diversion-btn,
+.section-btn,
+.proceed-btn,
+.back-btn {
+  background: linear-gradient(45deg, #4CAF50, #2e7d32);
+  /* green gradient */
+  color: #fff;
+  border: none;
+  padding: 0.9rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+.diversion-btn:hover,
+.section-btn:hover,
+.proceed-btn:hover,
+.back-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.4);
+}
+
+/* Additional "active" style for the selected section */
+.section-btn.active {
+  background: linear-gradient(45deg, #2196F3, #1a78d7);
+  /* vibrant blue gradient */
+  color: #fff;
+}
+
+/* "Back" button => a red gradient */
+.back-btn {
+  margin-top: 1rem;
+  background: linear-gradient(45deg, #f44336, #c62828);
+}
+
+/* "Proceed" button => a gold gradient for more emphasis */
+.proceed-btn {
+  background: linear-gradient(45deg, #ffc107, #ffa000);
+}
+
+/* ========== Hover Animation Overlay (Optional) ========== */
+.diversion-btn::before,
+.section-btn::before,
+.proceed-btn::before,
+.back-btn::before {
+  content: "";
+  position: absolute;
+  top: 0; left: -50%;
+  width: 50%;
+  height: 100%;
+  background: rgba(255,255,255,0.3);
+  transform: skewX(-30deg) translateX(0);
+  transition: 0.5s;
+  z-index: 1;
+  pointer-events: none;
+}
+.diversion-btn:hover::before,
+.section-btn:hover::before,
+.proceed-btn:hover::before,
+.back-btn:hover::before {
+  left: 150%;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
   .selection-container {
-    max-width: 800px;
-    margin: 3rem auto;
-    padding: 1rem;
-  }
-  
-  /* Diversion & Section Blocks */
-  .diversion-section,
-  .section-section,
-  .proceed-section {
-    margin-bottom: 2.5rem;
-    text-align: center;
+    margin-top: 1rem;
+    padding: 2rem 1rem;
   }
   .diversion-section h2,
   .section-section h2 {
-    font-size: 2.2rem;
-    margin-bottom: 1rem;
-    color: #1d2b64;
+    font-size: 1.5rem;
   }
-  
-  /* Button Group for Options */
+  .diversion-btn,
+  .section-btn,
+  .proceed-btn,
+  .back-btn {
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+  }
   .diversion-options,
   .section-options {
-    display: flex;
-    justify-content: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    gap: 1rem;
   }
-  
-  /* Option Buttons */
-  .diversion-btn,
-  .section-btn {
-    background: #1d2b64;
-    color: #fff;
-    border: none;
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: transform 0.3s ease, background 0.3s ease;
-  }
-  .diversion-btn:hover,
-  .section-btn:hover {
-    background: #162a50;
-    transform: translateY(-3px);
-  }
-  
-  /* Back and Proceed Buttons */
-  .back-btn,
-  .proceed-btn {
-    background: #ff6f61;
-    color: #fff;
-    border: none;
-    padding: 0.8rem 1.8rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
-    margin-top: 1.5rem;
-  }
-  .back-btn:hover,
-  .proceed-btn:hover {
-    background: #e65a50;
-    transform: translateY(-2px);
-  }
-  
-  /* ---------- Responsive Adjustments ---------- */
-  @media (max-width: 768px) {
-    .learn-header h1 {
-      font-size: 2.5rem;
-    }
-    .learn-header p {
-      font-size: 1.1rem;
-    }
-    .diversion-btn,
-    .section-btn {
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-    }
-    .back-btn,
-    .proceed-btn {
-      font-size: 1rem;
-      padding: 0.7rem 1.4rem;
-    }
-  }
-  
+}

@@ -1,7 +1,7 @@
 // learn.js - Handles diversion and section selection for the Learn Module
 
 window.addEventListener('DOMContentLoaded', function() {
-  // Get references to elements
+  // references
   const diversionButtons = document.querySelectorAll('.diversion-btn');
   const sectionSection = document.getElementById('sectionSection');
   const sectionOptionsContainer = document.getElementById('sectionOptions');
@@ -13,44 +13,56 @@ window.addEventListener('DOMContentLoaded', function() {
   let selectedSection = '';
 
   // Mapping for sections by diversion
+  // e.g. "cat" => ["quant", "lrdi", "varc"]
+  // e.g. "bank" => ["bank_quant", "bank_reasoning", "bank_english"]
+  // e.g. "mlai" => ["mlfoundation", "advancedai"]
   const sectionsMapping = {
-    cat: ['Quant', 'LRDI', 'VARC'],
-    bank: ['Bank Quant', 'Bank Reasoning', 'Bank English'],
-    mlai: ['ML Foundation', 'Advanced AI']
+    cat: [
+      { display: "QUANT", value: "quant" },
+      { display: "LRDI", value: "lrdi" },
+      { display: "VARC", value: "varc" }
+    ],
+    bank: [
+      { display: "BANK-QUANT", value: "bank_quant" },
+      { display: "BANK-REASONING", value: "bank_reasoning" },
+      { display: "BANK-ENGLISH", value: "bank_english" }
+    ],
+    mlai: [
+      { display: "MLFOUNDATION", value: "mlfoundation" },
+      { display: "ADVANCEDAI", value: "advancedai" }
+    ]
   };
 
-  // When a diversion button is clicked:
+  // When a diversion button is clicked
   diversionButtons.forEach(button => {
     button.addEventListener('click', function() {
       selectedDiversion = this.getAttribute('data-diversion');
-      // Save chosen diversion to localStorage for later use
+      // store chosen diversion
       localStorage.setItem('diversion', selectedDiversion);
-      // Populate section options based on chosen diversion
+      // populate section options
       populateSectionOptions(selectedDiversion);
-      // Hide the diversion selection and show section selection
+      // hide diversion, show section
       document.querySelector('.diversion-section').style.display = 'none';
       sectionSection.style.display = 'block';
+      proceedSection.style.display = 'none';
     });
   });
 
-  // Populate section options dynamically based on the chosen diversion
   function populateSectionOptions(diversion) {
-    sectionOptionsContainer.innerHTML = ''; // Clear previous options
+    sectionOptionsContainer.innerHTML = '';
     if (sectionsMapping[diversion]) {
-      sectionsMapping[diversion].forEach(section => {
+      sectionsMapping[diversion].forEach(sec => {
         const btn = document.createElement('button');
         btn.classList.add('section-btn');
-        btn.textContent = section;
-        // Use a normalized value for storage (e.g., lowercase, underscores)
-        btn.setAttribute('data-section', section.toLowerCase().replace(/\s/g, '_'));
+        btn.textContent = sec.display;
+        btn.setAttribute('data-section', sec.value);
         btn.addEventListener('click', function() {
           selectedSection = this.getAttribute('data-section');
-          // Save chosen section to localStorage
           localStorage.setItem('section', selectedSection);
-          // Provide visual feedback by marking this button as active
+          // highlight
           document.querySelectorAll('.section-btn').forEach(b => b.classList.remove('active'));
           this.classList.add('active');
-          // Show the Proceed button section
+          // show proceed
           proceedSection.style.display = 'block';
         });
         sectionOptionsContainer.appendChild(btn);
@@ -58,20 +70,20 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // "Back" button: return to diversion selection
+  // Back to diversion
   backToDiversionBtn.addEventListener('click', function() {
     sectionSection.style.display = 'none';
     proceedSection.style.display = 'none';
     document.querySelector('.diversion-section').style.display = 'block';
   });
 
-  // "Proceed to Questions" button: redirect to learn-questions.html
+  // proceed
   proceedBtn.addEventListener('click', function() {
     if (!selectedSection) {
       alert("Please select a section before proceeding.");
       return;
     }
-    // Now the learn-questions.html page can read the stored "diversion" and "section" values
+    // go to learn-questions
     window.location.href = "learn-questions.html";
   });
 });

@@ -1,12 +1,21 @@
+// server/models/quest.js
+
 const mongoose = require('mongoose');
 
-const questionSchema = new mongoose.Schema({
-  text: { type: String, required: true },
-  answer: { type: String, required: true },
-  chapter: { type: String, required: true },
-  difficulty: { type: Number, min: 1, max: 10 },
-  tags: [String],
-  created: { type: Date, default: Date.now }
+const questionSchema = mongoose.Schema({
+  q: { type: String, required: true },
+  a: { type: String, default: "" }
 });
 
-module.exports = mongoose.model('Question', questionSchema);
+const subChapterSchema = mongoose.Schema({
+  name: { type: String, required: true },
+  questions: [questionSchema]
+});
+
+const chapterSchema = mongoose.Schema({
+  diversion: { type: String, required: true },  // e.g., "CAT", "BANK", "MLAI"
+  section: { type: String, required: true },    // e.g., "QUANT", "LRDI", etc.
+  subChapters: { type: Map, of: subChapterSchema }  // key: sub-chapter name (e.g., "percentage")
+});
+
+module.exports = mongoose.model('Chapter', chapterSchema);

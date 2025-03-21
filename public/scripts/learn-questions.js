@@ -1,22 +1,15 @@
 /****************************************************************************
-  learn-questions.js - Updated to load data from the backend API
-  This file now fetches chapter data from the backend instead of using static data.
-  
-  Expected Backend API endpoint: GET /api/chapters
-  (You can filter on the backend if desired; here we fetch all and filter on the client.)
-  
-  The page will read localStorage for "diversion" and "section" (set via learn.html)
-  and then look for the chapter that matches. The matching chapter’s subChapters 
-  will be used to populate the sub-chapter dropdown and to load questions.
-  
-  All other features (notebook, status panel, search, quiz mode, PDF generation, etc.)
-  remain the same.
+  learn-questions.js - Updated with two main fixes:
+  1) Scroll to first/last question using scrollIntoView, 
+     so the up/down arrows reliably jump to the top or bottom question.
+  2) PDF generation: increased top margin so the brand header 
+     doesn't overlap the questions.
 ****************************************************************************/
 
-let topKey = "";  // will be built from fetched data (e.g. "cat_quant")
-let currentChapterData = null; // the chapter object fetched from backend that matches
+let topKey = "";            // Built from diversion_section
+let currentChapterData = null; 
 let currentSubChapter = ""; // e.g., "percentage"
-let subChapterData = null;  // array of questions for the chosen sub-chapter
+let subChapterData = null;  // array of questions
 let notebookVisible = false;
 
 /** Quiz Variables **/
@@ -30,24 +23,24 @@ let questionTimer = 0;
 let quizInterval = null;
 let questionInterval = null;
 
-/** On page load, fetch chapter data from the backend **/
+/** On page load, fetch from backend **/
 window.addEventListener("DOMContentLoaded", async () => {
-  // Apply dark mode if user preference exists
+  // Dark mode
   if (localStorage.getItem("darkMode") === "true") {
     document.body.classList.add("dark-mode");
   }
 
-  // Read diversion and section from localStorage (set from learn.html)
+  // diversion & section
   const diversion = (localStorage.getItem("diversion") || "cat").toLowerCase();
   const section = (localStorage.getItem("section") || "quant").toLowerCase();
-  topKey = `${diversion}_${section}`;  // e.g. "cat_quant"
+  topKey = `${diversion}_${section}`;
 
-  // Fetch all chapters from the backend
+  // fetch chapters
   try {
     const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/chapters");
     const chapters = await res.json();
-    // Filter chapters by diversion and section (case-insensitive)
-    currentChapterData = chapters.find(ch => 
+    // find matching chapter
+    currentChapterData = chapters.find(ch =>
       ch.diversion.toLowerCase() === diversion && ch.section.toLowerCase() === section
     );
     if (!currentChapterData) {
@@ -60,28 +53,33 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Build brand title using the fetched chapter data
-  // Expected fields: currentChapterData.diversion, .section, and subChapters
+  // build brand title
   const brandDiv = currentChapterData.diversion.toUpperCase();
   const brandSec = currentChapterData.section.toUpperCase();
   const brandTitleEl = document.getElementById("brandTitleEl");
-  // "NexusHub" is always clickable to index.html; the diversion and section link back to learn.html with query parameters.
   brandTitleEl.innerHTML = `
     <a href="index.html" style="color: #ffcc00; text-decoration: none;">NexusHub</a>
     / <a href="learn.html?diversion=${diversion}" style="color: #ffcc00; text-decoration: none;">${brandDiv}</a>
     / <a href="learn.html?diversion=${diversion}&section=${section}" style="color: #ffcc00; text-decoration: none;">${brandSec}</a>
   `;
 
-  // Populate the sub-chapter dropdown using currentChapterData.subChapters.
+  // fill sub-chapter dropdown
   fillSubChapterDropdown();
-  // Load the first sub-chapter by default
+  // load first sub-chapter by default
   const firstSub = Object.keys(currentChapterData.subChapters)[0];
   loadSubChapter(firstSub);
   loadNotebookForSubChapter(firstSub);
 
-  // Save notebook on input changes
+  // Notebook input => save on input
   document.getElementById("notebookArea").addEventListener("input", () => {
     saveNotebookForSubChapter(currentSubChapter);
+  });
+
+  // Press Enter in search box => search
+  document.getElementById("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      searchQuestions();
+    }
   });
 });
 
@@ -91,7 +89,7 @@ function toggleDarkMode() {
   localStorage.setItem("darkMode", document.body.classList.contains("dark-mode") ? "true" : "false");
 }
 
-/** Fill sub-chapter dropdown from currentChapterData */
+/** Fill sub-chapter dropdown */
 function fillSubChapterDropdown() {
   const subChSelect = document.getElementById("subChapterSelect");
   subChSelect.innerHTML = "";
@@ -106,14 +104,14 @@ function fillSubChapterDropdown() {
   }
 }
 
-/** onSubChapterChange: Save old notebook, load new sub-chapter and its notebook */
+/** Sub-chapter changed => load new sub-chapter, save notebook from old */
 function onSubChapterChange(newSub) {
   saveNotebookForSubChapter(currentSubChapter);
   loadSubChapter(newSub);
   loadNotebookForSubChapter(newSub);
 }
 
-/** loadSubChapter: Build question cards for the selected sub-chapter */
+/** Build question cards for the chosen sub-chapter */
 function loadSubChapter(subKey) {
   currentSubChapter = subKey;
   const container = document.getElementById("questionsContainer");
@@ -124,13 +122,14 @@ function loadSubChapter(subKey) {
     return;
   }
   subChapterData = subObj.questions;
+
   subChapterData.forEach((item, index) => {
     const card = document.createElement("div");
     card.classList.add("question-card");
-    // Save searchable text
+    // data-search => for filtering
     card.setAttribute("data-search", (item.q + " " + (item.a || "")).toLowerCase());
 
-    // Left side: question info
+    // left => question info
     const qInfo = document.createElement("div");
     qInfo.classList.add("question-info");
     const qNum = document.createElement("div");
@@ -140,18 +139,21 @@ function loadSubChapter(subKey) {
     qText.classList.add("question-text");
     qText.textContent = item.q;
 
-    // Answer section
+    // answer section
     const ansSection = document.createElement("div");
     ansSection.classList.add("answer-section");
     const input = document.createElement("input");
     input.type = "text";
     input.classList.add("answer-input");
     input.placeholder = "Type your answer here...";
+    // Press Enter => verify
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") verifyBtn.click();
     });
+
     const ansResult = document.createElement("div");
     ansResult.classList.add("answer-result");
+
     const verifyBtn = document.createElement("button");
     verifyBtn.classList.add("check-btn");
     verifyBtn.textContent = "Verify";
@@ -174,9 +176,11 @@ function loadSubChapter(subKey) {
         ansResult.textContent = "😞 Incorrect!";
       }
     });
+
     const revealBtn = document.createElement("button");
     revealBtn.classList.add("reveal-btn");
     revealBtn.textContent = "🤔 Reveal Answer";
+
     const ansDisplay = document.createElement("div");
     ansDisplay.classList.add("answer-display");
     ansDisplay.style.display = "none";
@@ -190,6 +194,7 @@ function loadSubChapter(subKey) {
         revealBtn.textContent = "🤔 Reveal Answer";
       }
     });
+
     // AskStriderChat button
     const askBtn = document.createElement("button");
     askBtn.classList.add("ask-btn");
@@ -197,6 +202,7 @@ function loadSubChapter(subKey) {
     askBtn.addEventListener("click", () => {
       askStriderChat(item.q);
     });
+
     ansSection.appendChild(input);
     ansSection.appendChild(verifyBtn);
     ansSection.appendChild(revealBtn);
@@ -208,12 +214,13 @@ function loadSubChapter(subKey) {
     qInfo.appendChild(qText);
     qInfo.appendChild(ansSection);
 
-    // Right side: status panel with clickable emoji boxes
+    // status panel => solved, unsolved, revisit
     const statusPanel = document.createElement("div");
     statusPanel.classList.add("status-panel");
     const stTitle = document.createElement("h4");
     stTitle.textContent = "Status";
     statusPanel.appendChild(stTitle);
+
     const stOptions = document.createElement("div");
     stOptions.classList.add("status-options");
     const statuses = [
@@ -225,7 +232,6 @@ function loadSubChapter(subKey) {
       const box = document.createElement("div");
       box.classList.add("status-box", st.bgClass);
       box.textContent = st.emoji;
-      // Unique key: "status-{topKey}-{subKey}-{index}"
       const storeKey = `status-${topKey}-${subKey}-${index}`;
       if (localStorage.getItem(storeKey) === st.key) {
         box.classList.add("active");
@@ -245,14 +251,14 @@ function loadSubChapter(subKey) {
   });
 }
 
-/** AskStriderChat placeholder function */
+/** AskStriderChat placeholder */
 function askStriderChat(questionText) {
   console.log(`Pretend opening StriderChat with:
 "${questionText}
 Please give answer."`);
 }
 
-/** Save and load notebook per sub-chapter (key: notebook-{topKey}-{subKey}-guest) */
+/** Save/load notebook per sub-chapter */
 function saveNotebookForSubChapter(subKey) {
   if (!subKey) return;
   const text = document.getElementById("notebookArea").value;
@@ -264,7 +270,7 @@ function loadNotebookForSubChapter(subKey) {
   document.getElementById("notebookArea").value = saved || "";
 }
 
-/** Search functionality: Filter question cards by keyword */
+/** Searching => filter question cards */
 function searchQuestions() {
   const query = document.getElementById("searchInput").value.toLowerCase();
   const cards = document.querySelectorAll(".question-card");
@@ -274,7 +280,7 @@ function searchQuestions() {
   });
 }
 
-/** Clear search */
+/** Clear search => show all cards */
 function clearSearch() {
   document.getElementById("searchInput").value = "";
   const cards = document.querySelectorAll(".question-card");
@@ -283,100 +289,138 @@ function clearSearch() {
   });
 }
 
-/** Toggle notebook visibility */
+/** Toggle notebook */
 function toggleNotebook() {
   notebookVisible = !notebookVisible;
   document.getElementById("notebookPanel").style.display = notebookVisible ? "block" : "none";
 }
 
-/** Scroll buttons: Scroll visible container (questions or quiz) */
+/** Scroll to top => jump to first question or first quiz question */
 function scrollToTop() {
   const quizC = document.getElementById("quizContainer");
   const mainC = document.getElementById("questionsContainer");
+
   if (quizC.style.display !== "none") {
-    quizC.scrollTo({ top: 0, behavior: "smooth" });
+    // Quiz is visible => scroll to first quiz question
+    const firstQuizCard = quizC.querySelector(".quiz-question-card");
+    if (firstQuizCard) {
+      firstQuizCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      quizC.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   } else {
-    mainC.scrollTo({ top: 0, behavior: "smooth" });
-  }
-}
-function scrollToBottom() {
-  const quizC = document.getElementById("quizContainer");
-  const mainC = document.getElementById("questionsContainer");
-  if (quizC.style.display !== "none") {
-    quizC.scrollTo({ top: quizC.scrollHeight, behavior: "smooth" });
-  } else {
-    mainC.scrollTo({ top: mainC.scrollHeight, behavior: "smooth" });
+    // Normal mode => scroll to first question
+    const firstCard = mainC.querySelector(".question-card");
+    if (firstCard) {
+      firstCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      mainC.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 }
 
-/** PDF generation: Improved layout with spacing and lines */
+/** Scroll to bottom => jump to last question or last quiz question */
+function scrollToBottom() {
+  const quizC = document.getElementById("quizContainer");
+  const mainC = document.getElementById("questionsContainer");
+
+  if (quizC.style.display !== "none") {
+    // Quiz is visible => scroll to last quiz question
+    const quizCards = quizC.querySelectorAll(".quiz-question-card");
+    if (quizCards.length > 0) {
+      quizCards[quizCards.length - 1].scrollIntoView({ behavior: "smooth", block: "end" });
+    } else {
+      quizC.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  } else {
+    // Normal mode => scroll to last question
+    const cards = mainC.querySelectorAll(".question-card");
+    if (cards.length > 0) {
+      cards[cards.length - 1].scrollIntoView({ behavior: "smooth", block: "end" });
+    } else {
+      mainC.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }
+}
+
+/** PDF generation => improved margin so header won't overlap */
 function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p", "mm", "a4");
 
+  // background
   doc.setFillColor(230, 245, 255);
   doc.rect(0, 0, 210, 297, "F");
 
+  // brand title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(255, 0, 0);
   const brandText = document.getElementById("brandTitleEl").textContent || "NexusHub / ???";
+  // place brand text at y=15
   doc.text(brandText, 10, 15);
 
+  // sub-chapter title => y=30
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 255);
   const subChTitle = currentSubChapter ? currentSubChapter.toUpperCase() : "SUBCHAPTER";
-  doc.text(`- ${subChTitle}`, 10, 25);
+  doc.text(`- ${subChTitle}`, 10, 30);
 
-  let yPos = 35;
+  // start questions at y=45
+  let yPos = 45;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(14);
   doc.setTextColor(0, 0, 0);
-  
+
   const container = document.getElementById("questionsContainer");
   const cards = container.querySelectorAll(".question-card");
   cards.forEach((card, index) => {
     const qNumEl = card.querySelector(".question-number");
     const qTextEl = card.querySelector(".question-text");
     const ansEl = card.querySelector(".answer-display");
+
     const qNum = qNumEl ? qNumEl.textContent : `Question ${index+1}`;
     const qText = qTextEl ? qTextEl.textContent : "";
     const ansText = ansEl ? ansEl.textContent : "Answer not provided";
-    
-    // Draw separator line
+
+    // line => yPos - 2
     doc.setDrawColor(150, 150, 150);
     doc.line(10, yPos - 2, 200, yPos - 2);
-    
+
+    // question
     const questionLines = doc.splitTextToSize(`${qNum}: ${qText}`, 180);
     doc.text(questionLines, 15, yPos);
     yPos += questionLines.length * 6 + 3;
-    
+
+    // answer in green bold
     doc.setTextColor(0, 128, 0);
     doc.setFont("helvetica", "bold");
     const answerLines = doc.splitTextToSize(ansText, 180);
     doc.text(answerLines, 15, yPos);
     yPos += answerLines.length * 6 + 8;
-    
+
+    // revert
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    
+
+    // page break
     if (yPos > 270) {
       doc.addPage();
       doc.setFillColor(230, 245, 255);
       doc.rect(0, 0, 210, 297, "F");
-      yPos = 35;
+      yPos = 45;
     }
   });
   doc.save(`${brandText}_${subChTitle}.pdf`);
 }
 
-/** QUIZ Mode: Use subChapterData to build quiz questions */
+/** QUIZ Mode => use subChapterData */
 function startQuiz() {
   document.getElementById("questionsContainer").style.display = "none";
   document.getElementById("quizContainer").style.display = "block";
   document.getElementById("quizRestartContainer").style.display = "none";
-  
+
   if (!subChapterData) {
     alert("No sub-chapter data found. Please pick a valid sub-chapter first.");
     return;
@@ -384,26 +428,26 @@ function startQuiz() {
   quizData = JSON.parse(JSON.stringify(subChapterData));
   shuffleArray(quizData);
   quizData.forEach(q => { q.finalState = "unanswered"; });
-  
+
   quizIndex = 0;
   correctCount = 0;
   incorrectCount = 0;
   skippedCount = 0;
   overallTimer = 0;
   questionTimer = 0;
-  
+
   if (quizInterval) clearInterval(quizInterval);
   quizInterval = setInterval(() => {
     overallTimer++;
     document.getElementById("overallTimer").textContent = `Overall Time: ${overallTimer}s`;
   }, 1000);
-  
+
   if (questionInterval) clearInterval(questionInterval);
   questionInterval = setInterval(() => {
     questionTimer++;
     document.getElementById("questionTimer").textContent = `Question Time: ${questionTimer}s`;
   }, 1000);
-  
+
   loadQuizQuestion(quizIndex);
   updateQuizStats();
 }
@@ -425,10 +469,10 @@ function loadQuizQuestion(idx) {
   const skipBtn = document.getElementById("skipBtn");
   const nextBtn = document.getElementById("nextBtn");
   const restartContainer = document.getElementById("quizRestartContainer");
-  
+
   questionTimer = 0;
   document.getElementById("questionTimer").textContent = `Question Time: 0s`;
-  
+
   if (idx >= quizData.length) {
     questionEl.textContent = "No more questions!";
     ansInput.style.display = "none";
@@ -445,9 +489,9 @@ function loadQuizQuestion(idx) {
     restartContainer.style.display = "block";
     return;
   }
-  
+
   restartContainer.style.display = "none";
-  let qData = quizData[quizIndex];
+  let qData = quizData[idx];
   questionEl.textContent = qData.q;
   ansInput.style.display = "inline-block";
   ansInput.value = "";
@@ -477,25 +521,25 @@ function verifyQuizAnswer() {
   const verifyBtn = document.getElementById("verifyBtn");
   const skipBtn = document.getElementById("skipBtn");
   const nextBtn = document.getElementById("nextBtn");
-  
+
   let userAns = ansInput.value.trim();
   let qData = quizData[quizIndex];
-  
+
   ansStatus.style.display = "block";
   ansStatus.className = "answer-status";
-  
+
   if (qData.finalState && qData.finalState !== "unanswered") {
     ansStatus.classList.add("incorrect");
     ansStatus.textContent = "This question was already answered or skipped.";
     return;
   }
-  
+
   if (!userAns) {
     ansStatus.classList.add("incorrect");
     ansStatus.textContent = "😞 Please type an answer!";
     return;
   }
-  
+
   if (!qData.a) {
     ansStatus.classList.add("incorrect");
     ansStatus.textContent = "❔ Answer not provided by system";
@@ -513,11 +557,10 @@ function verifyQuizAnswer() {
     qData.finalState = "incorrect";
     skipBtn.style.display = "none";
   }
-  
+
   revealBtn.style.display = "inline-block";
   verifyBtn.style.display = "none";
   nextBtn.style.display = "inline-block";
-  
   updateQuizStats();
 }
 
@@ -526,7 +569,7 @@ function revealQuizAnswer() {
   const ansCorrectEl = document.getElementById("quizCorrectAnswer");
   const revealBtn = document.getElementById("revealBtn");
   let qData = quizData[quizIndex];
-  
+
   if (ansCorrectEl.style.display === "none" || ansCorrectEl.style.display === "") {
     ansCorrectEl.style.display = "block";
     revealBtn.textContent = "😮 Hide Answer";
@@ -541,7 +584,7 @@ function skipQuizQuestion() {
   if (quizIndex >= quizData.length) return;
   const ansStatus = document.getElementById("quizAnswerStatus");
   let qData = quizData[quizIndex];
-  
+
   if (qData.finalState === "unanswered") {
     skippedCount++;
     qData.finalState = "skipped";
@@ -562,17 +605,15 @@ function nextQuizQuestion() {
   updateQuizStats();
 }
 
-/** Restart Quiz button calls startQuiz() again */
+/** Restart Quiz => call startQuiz again */
 function restartQuiz() {
   startQuiz();
 }
 
-/** Utility: Shuffle an array */
+/** Utility => shuffle array */
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
-
-/* End of file */

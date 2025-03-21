@@ -3,10 +3,10 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('./server/models/User');
+const User = require('../models/user');
 
 // Secret for JWT – ideally, set this in your .env file
-const JWT_SECRET = process.env.JWT_SECRET || "7945b3b1-7b7b-4b7b-8b7b-7b7b7b7b7b7b";
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
 // @desc    Sign Up a new user
 // @route   POST /api/auth/signup

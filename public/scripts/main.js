@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       try {
-        const res = await fetch("http://localhost:5004/api/auth/signup", {
+        const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/auth/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })

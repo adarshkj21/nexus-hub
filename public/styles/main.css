@@ -96,6 +96,9 @@ html, body {
 .login-form-section {
   margin-bottom: 20px;
 }
+.signup-form-section {
+  margin-bottom: 20px;
+}
 .form-group {
   margin-bottom: 20px;
 }
@@ -147,6 +150,15 @@ html, body {
   color: #ccc;
   margin-top: 20px;
 }
+.signup-link {
+  text-align: center;
+  margin-top: 10px;
+}
+.signup-link a {
+  color: #ffcc00;
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 /* =====================================================
    Dashboard
@@ -168,7 +180,6 @@ html, body {
 
 /* ========================= NAVBAR ========================= */
 .navbar {
-  /* Fancy gradient + subtle glow + box shadow */
   background: linear-gradient(90deg, #1a1a40, #0d0d2d);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
   border-bottom: 3px solid #ffcc00;
@@ -181,8 +192,6 @@ html, body {
   align-items: center;
   justify-content: space-between;
 }
-
-/* Left: Brand with neon glow */
 .nav-left {
   display: inline-flex;
   align-items: center;
@@ -198,8 +207,6 @@ html, body {
 .nav-logo:hover {
   transform: scale(1.08);
 }
-
-/* Center: Nav Links with pill hover effect */
 .nav-center {
   display: inline-flex;
   align-items: center;
@@ -216,7 +223,7 @@ html, body {
   color: #fff;
   font-size: 1.1rem;
   padding: 8px 16px;
-  border-radius: 20px; /* pill shape */
+  border-radius: 20px;
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 .nav-item a:hover {
@@ -224,8 +231,6 @@ html, body {
   transform: scale(1.04);
   color: #ffcc00;
 }
-
-/* Right: Search & Profile with slight glow on hover */
 .nav-right {
   display: inline-flex;
   align-items: center;
@@ -264,7 +269,7 @@ html, body {
   filter: brightness(0) invert(0);
 }
 
-/* Dropdowns with glow effect on hover */
+/* Dropdowns */
 .dropdown, .profile-dropdown {
   position: relative;
 }
@@ -312,8 +317,6 @@ html, body {
 .profile-dropdown:hover .profile-menu {
   display: block;
 }
-
-/* Profile Pic */
 .profile-pic {
   width: 35px;
   height: 35px;
@@ -324,7 +327,7 @@ html, body {
 
 /* ==================== Hero + Modules + Footer ==================== */
 .hero-and-modules {
-  flex: 1; /* Fill leftover space */
+  flex: 1;
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -385,8 +388,8 @@ html, body {
 }
 .module-tile {
   position: relative;
-  background-color: #000; /* black */
-  border: 3px solid red;   /* red border */
+  background-color: #000;
+  border: 3px solid red;
   border-radius: 15px;
   padding: 20px;
   height: 180px;
@@ -402,7 +405,7 @@ html, body {
 .tile-content h3 {
   font-size: 1.4rem;
   margin-bottom: 10px;
-  color: red; /* Red text to match combo */
+  color: red;
 }
 .tile-content p {
   font-size: 1rem;
@@ -439,7 +442,7 @@ html, body {
 /* Footer */
 .dashboard-footer {
   background-color: #0a0a2a;
-  flex-shrink: 0; /* Keep footer at bottom */
+  flex-shrink: 0;
   padding: 15px 20px;
   text-align: center;
   border-top: 3px solid #ffcc00;

@@ -1,14 +1,14 @@
 /****************************************************************************
-  learn-questions.js - Updated with two main fixes:
-  1) Scroll to first/last question using scrollIntoView, 
-     so the up/down arrows reliably jump to the top or bottom question.
-  2) PDF generation: increased top margin so the brand header 
-     doesn't overlap the questions.
+  learn-questions.js - Revised for container-based scrolling & PDF fix
+  1) Scroll Buttons now use .scroll({ top: 0, ... }) and .scrollHeight approach
+     to reliably move to the start/end of #questionsContainer or #quizContainer.
+  2) PDF generation uses extra top margin so brand header doesn't overlap questions.
+  3) Everything else remains intact (quiz mode, search, notebook, etc.).
 ****************************************************************************/
 
-let topKey = "";            // Built from diversion_section
+let topKey = "";            // e.g. "cat_quant"
 let currentChapterData = null; 
-let currentSubChapter = ""; // e.g., "percentage"
+let currentSubChapter = ""; // e.g. "percentage"
 let subChapterData = null;  // array of questions
 let notebookVisible = false;
 
@@ -23,19 +23,19 @@ let questionTimer = 0;
 let quizInterval = null;
 let questionInterval = null;
 
-/** On page load, fetch from backend **/
+/** On page load => fetch from backend **/
 window.addEventListener("DOMContentLoaded", async () => {
   // Dark mode
   if (localStorage.getItem("darkMode") === "true") {
     document.body.classList.add("dark-mode");
   }
 
-  // diversion & section
+  // diversion & section from localStorage
   const diversion = (localStorage.getItem("diversion") || "cat").toLowerCase();
   const section = (localStorage.getItem("section") || "quant").toLowerCase();
   topKey = `${diversion}_${section}`;
 
-  // fetch chapters
+  // fetch chapters from backend
   try {
     const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/chapters");
     const chapters = await res.json();
@@ -65,17 +65,18 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // fill sub-chapter dropdown
   fillSubChapterDropdown();
+
   // load first sub-chapter by default
   const firstSub = Object.keys(currentChapterData.subChapters)[0];
   loadSubChapter(firstSub);
   loadNotebookForSubChapter(firstSub);
 
-  // Notebook input => save on input
+  // Save notebook on input changes
   document.getElementById("notebookArea").addEventListener("input", () => {
     saveNotebookForSubChapter(currentSubChapter);
   });
 
-  // Press Enter in search box => search
+  // Press Enter in search => trigger search
   document.getElementById("searchInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       searchQuestions();
@@ -89,7 +90,7 @@ function toggleDarkMode() {
   localStorage.setItem("darkMode", document.body.classList.contains("dark-mode") ? "true" : "false");
 }
 
-/** Fill sub-chapter dropdown */
+/** Fill sub-chapter dropdown from currentChapterData */
 function fillSubChapterDropdown() {
   const subChSelect = document.getElementById("subChapterSelect");
   subChSelect.innerHTML = "";
@@ -104,14 +105,14 @@ function fillSubChapterDropdown() {
   }
 }
 
-/** Sub-chapter changed => load new sub-chapter, save notebook from old */
+/** On sub-chapter change => load new, save old notebook */
 function onSubChapterChange(newSub) {
   saveNotebookForSubChapter(currentSubChapter);
   loadSubChapter(newSub);
   loadNotebookForSubChapter(newSub);
 }
 
-/** Build question cards for the chosen sub-chapter */
+/** Build question cards for the selected sub-chapter */
 function loadSubChapter(subKey) {
   currentSubChapter = subKey;
   const container = document.getElementById("questionsContainer");
@@ -126,10 +127,10 @@ function loadSubChapter(subKey) {
   subChapterData.forEach((item, index) => {
     const card = document.createElement("div");
     card.classList.add("question-card");
-    // data-search => for filtering
+    // store text for searching
     card.setAttribute("data-search", (item.q + " " + (item.a || "")).toLowerCase());
 
-    // left => question info
+    // question info
     const qInfo = document.createElement("div");
     qInfo.classList.add("question-info");
     const qNum = document.createElement("div");
@@ -142,6 +143,7 @@ function loadSubChapter(subKey) {
     // answer section
     const ansSection = document.createElement("div");
     ansSection.classList.add("answer-section");
+
     const input = document.createElement("input");
     input.type = "text";
     input.classList.add("answer-input");
@@ -180,11 +182,11 @@ function loadSubChapter(subKey) {
     const revealBtn = document.createElement("button");
     revealBtn.classList.add("reveal-btn");
     revealBtn.textContent = "🤔 Reveal Answer";
-
     const ansDisplay = document.createElement("div");
     ansDisplay.classList.add("answer-display");
     ansDisplay.style.display = "none";
     ansDisplay.textContent = item.a ? `Answer: ${item.a}` : "Answer not provided";
+
     revealBtn.addEventListener("click", () => {
       if (ansDisplay.style.display === "none" || ansDisplay.style.display === "") {
         ansDisplay.style.display = "block";
@@ -251,14 +253,14 @@ function loadSubChapter(subKey) {
   });
 }
 
-/** AskStriderChat placeholder */
+/** Placeholder function => AskStriderChat */
 function askStriderChat(questionText) {
   console.log(`Pretend opening StriderChat with:
 "${questionText}
 Please give answer."`);
 }
 
-/** Save/load notebook per sub-chapter */
+/** Save/Load notebook per sub-chapter */
 function saveNotebookForSubChapter(subKey) {
   if (!subKey) return;
   const text = document.getElementById("notebookArea").value;
@@ -270,7 +272,7 @@ function loadNotebookForSubChapter(subKey) {
   document.getElementById("notebookArea").value = saved || "";
 }
 
-/** Searching => filter question cards */
+/** Search => filter question cards */
 function searchQuestions() {
   const query = document.getElementById("searchInput").value.toLowerCase();
   const cards = document.querySelectorAll(".question-card");
@@ -280,7 +282,7 @@ function searchQuestions() {
   });
 }
 
-/** Clear search => show all cards */
+/** Clear search => show all */
 function clearSearch() {
   document.getElementById("searchInput").value = "";
   const cards = document.querySelectorAll(".question-card");
@@ -289,61 +291,57 @@ function clearSearch() {
   });
 }
 
-/** Toggle notebook */
+/** Toggle Notebook */
 function toggleNotebook() {
   notebookVisible = !notebookVisible;
   document.getElementById("notebookPanel").style.display = notebookVisible ? "block" : "none";
 }
 
-/** Scroll to top => jump to first question or first quiz question */
+/** Scroll to top => container-based approach */
 function scrollToTop() {
   const quizC = document.getElementById("quizContainer");
   const mainC = document.getElementById("questionsContainer");
 
   if (quizC.style.display !== "none") {
-    // Quiz is visible => scroll to first quiz question
-    const firstQuizCard = quizC.querySelector(".quiz-question-card");
-    if (firstQuizCard) {
-      firstQuizCard.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      quizC.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    // Quiz visible => scroll top of quiz container
+    quizC.scroll({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
   } else {
-    // Normal mode => scroll to first question
-    const firstCard = mainC.querySelector(".question-card");
-    if (firstCard) {
-      firstCard.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      mainC.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    // Normal mode => scroll top of questions container
+    mainC.scroll({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
   }
 }
 
-/** Scroll to bottom => jump to last question or last quiz question */
+/** Scroll to bottom => container-based approach */
 function scrollToBottom() {
   const quizC = document.getElementById("quizContainer");
   const mainC = document.getElementById("questionsContainer");
 
   if (quizC.style.display !== "none") {
-    // Quiz is visible => scroll to last quiz question
-    const quizCards = quizC.querySelectorAll(".quiz-question-card");
-    if (quizCards.length > 0) {
-      quizCards[quizCards.length - 1].scrollIntoView({ behavior: "smooth", block: "end" });
-    } else {
-      quizC.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
+    // Quiz visible => scroll to bottom of quiz container
+    quizC.scroll({
+      top: quizC.scrollHeight,
+      left: 0,
+      behavior: "smooth"
+    });
   } else {
-    // Normal mode => scroll to last question
-    const cards = mainC.querySelectorAll(".question-card");
-    if (cards.length > 0) {
-      cards[cards.length - 1].scrollIntoView({ behavior: "smooth", block: "end" });
-    } else {
-      mainC.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
+    // Normal mode => scroll to bottom of questions container
+    mainC.scroll({
+      top: mainC.scrollHeight,
+      left: 0,
+      behavior: "smooth"
+    });
   }
 }
 
-/** PDF generation => improved margin so header won't overlap */
+/** PDF generation => bigger margin for brand text and sub-chapter */
 function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p", "mm", "a4");
@@ -374,6 +372,7 @@ function generatePDF() {
 
   const container = document.getElementById("questionsContainer");
   const cards = container.querySelectorAll(".question-card");
+
   cards.forEach((card, index) => {
     const qNumEl = card.querySelector(".question-number");
     const qTextEl = card.querySelector(".question-text");
@@ -383,7 +382,7 @@ function generatePDF() {
     const qText = qTextEl ? qTextEl.textContent : "";
     const ansText = ansEl ? ansEl.textContent : "Answer not provided";
 
-    // line => yPos - 2
+    // separator line
     doc.setDrawColor(150, 150, 150);
     doc.line(10, yPos - 2, 200, yPos - 2);
 
@@ -404,7 +403,7 @@ function generatePDF() {
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
 
-    // page break
+    // page break if near bottom
     if (yPos > 270) {
       doc.addPage();
       doc.setFillColor(230, 245, 255);
@@ -412,10 +411,11 @@ function generatePDF() {
       yPos = 45;
     }
   });
+
   doc.save(`${brandText}_${subChTitle}.pdf`);
 }
 
-/** QUIZ Mode => use subChapterData */
+/** QUIZ Mode => subChapterData => quizData */
 function startQuiz() {
   document.getElementById("questionsContainer").style.display = "none";
   document.getElementById("quizContainer").style.display = "block";
@@ -605,12 +605,12 @@ function nextQuizQuestion() {
   updateQuizStats();
 }
 
-/** Restart Quiz => call startQuiz again */
+/** Restart quiz => call startQuiz again */
 function restartQuiz() {
   startQuiz();
 }
 
-/** Utility => shuffle array */
+/** Utility => shuffle array in place */
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

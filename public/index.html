@@ -43,7 +43,9 @@
         <h1 class="login-title">Welcome to Nexus Hub</h1>
         <p class="login-tagline">Forge Your Destiny with Unlimited Possibilities</p>
       </header>
-      <section class="login-form-section">
+
+      <!-- LOGIN FORM SECTION -->
+      <section class="login-form-section" id="login-form-section">
         <form id="login-form">
           <div class="form-group">
             <label for="username">Username</label>
@@ -70,7 +72,47 @@
             </button>
           </div>
         </form>
+        <div class="signup-link">
+          <span>Don't have an account? 
+            <a href="#" id="show-signup-link">Sign Up</a>
+          </span>
+        </div>
       </section>
+
+      <!-- SIGNUP FORM SECTION (HIDDEN BY DEFAULT) -->
+      <section class="signup-form-section" id="signup-form-section" style="display: none;">
+        <form id="signup-form">
+          <div class="form-group">
+            <label for="signup-username">Username</label>
+            <input type="text" id="signup-username" placeholder="Choose a Username" required />
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input
+              type="password"
+              id="signup-password"
+              placeholder="Choose a Password"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm">Confirm Password</label>
+            <input
+              type="password"
+              id="signup-confirm"
+              placeholder="Confirm Password"
+              required
+            />
+          </div>
+          <div class="form-buttons">
+            <button type="submit" class="login-button">Sign Up</button>
+            <button type="button" id="back-to-login" class="login-button guest-button">
+              Back to Login
+            </button>
+          </div>
+        </form>
+      </section>
+
       <footer class="login-footer">
         <p>&copy; 2025 Strider21. All Rights Reserved. Version 1.0.0</p>
       </footer>
@@ -129,7 +171,7 @@
                 alt="Profile Picture"
                 class="profile-pic"
               />
-              <span class="profile-name">Profile</span> ▼
+              <span class="profile-name" id="dashboard-username">Profile</span> ▼
             </a>
             <div class="dropdown-content profile-menu">
               <a href="profile.html">My Profile</a>

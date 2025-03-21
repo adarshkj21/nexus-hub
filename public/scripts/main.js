@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------------------------
   // Check if user is already logged in
   // ---------------------------
-  // For guest login, we store token as "guest"
   const token = localStorage.getItem("token");
   const storedUsername = localStorage.getItem("username");
   if (token && storedUsername) {
@@ -70,12 +69,15 @@ document.addEventListener("DOMContentLoaded", function () {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
         });
+
         const contentType = res.headers.get("content-type");
         if (!res.ok || !contentType || !contentType.includes("application/json")) {
           const errorText = await res.text();
           throw new Error(`Sign Up Failed: ${errorText}`);
         }
+
         const data = await res.json();
+        // Expected response: { token, user: { username } }
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.user.username);
         showDashboard(data.user.username);
@@ -104,16 +106,18 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       try {
-        const res = await fetch("http://localhost:5004/api/auth/login", {
+        const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
         });
+
         const contentType = res.headers.get("content-type");
         if (!res.ok || !contentType || !contentType.includes("application/json")) {
           const errorText = await res.text();
           throw new Error(`Login Failed: ${errorText}`);
         }
+
         const data = await res.json();
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.user.username);
@@ -131,7 +135,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const guestButton = document.getElementById("guest-login-button");
   if (guestButton) {
     guestButton.addEventListener("click", function () {
-      // Set token as "guest" so that refreshing persists guest login
       localStorage.setItem("token", "guest");
       localStorage.setItem("username", "Guest");
       showDashboard("Guest");
@@ -142,12 +145,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // Show Dashboard Function
   // ---------------------------
   function showDashboard(user) {
-    // Set dashboard username elements
     const userNameEl = document.getElementById("user-name");
     const dashNameEl = document.getElementById("dashboard-username");
     if (userNameEl) userNameEl.textContent = user;
     if (dashNameEl) dashNameEl.textContent = user;
-    // Hide login container, show dashboard
     const loginContainer = document.getElementById("login-container");
     const dashboard = document.getElementById("dashboard");
     if (loginContainer) loginContainer.style.display = "none";

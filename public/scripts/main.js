@@ -12,13 +12,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ==========================
+  // ---------------------------
   // Check if user is already logged in
-  // ==========================
+  // ---------------------------
+  // For guest login, we store token as "guest"
   const token = localStorage.getItem("token");
   const storedUsername = localStorage.getItem("username");
   if (token && storedUsername) {
-    // user is "logged in"
     showDashboard(storedUsername);
   }
 
@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (showSignupLink) {
     showSignupLink.addEventListener("click", function (e) {
       e.preventDefault();
-      // Hide login, show sign up
       loginFormSection.style.display = "none";
       signupFormSection.style.display = "block";
     });
@@ -66,25 +65,23 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       try {
-        // Placeholder for your actual signup route
-        const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/auth/signup", {
+        const res = await fetch("http://localhost:5004/api/auth/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
         });
-        if (!res.ok) {
-          const errData = await res.json();
-          alert(`Sign Up Failed: ${errData.message || res.statusText}`);
-          return;
+        const contentType = res.headers.get("content-type");
+        if (!res.ok || !contentType || !contentType.includes("application/json")) {
+          const errorText = await res.text();
+          throw new Error(`Sign Up Failed: ${errorText}`);
         }
         const data = await res.json();
-        // Suppose data returns { token, user: { username } }
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.user.username);
         showDashboard(data.user.username);
       } catch (error) {
         console.error("Sign Up Error:", error);
-        alert("Sign Up Error. Check console.");
+        alert(`Sign Up Error: ${error.message}`);
       }
     });
   }
@@ -107,34 +104,36 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       try {
-        // Placeholder for your actual login route
-        const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/auth/login", {
+        const res = await fetch("http://localhost:5004/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
         });
-        if (!res.ok) {
-          const errData = await res.json();
-          alert(`Login Failed: ${errData.message || res.statusText}`);
-          return;
+        const contentType = res.headers.get("content-type");
+        if (!res.ok || !contentType || !contentType.includes("application/json")) {
+          const errorText = await res.text();
+          throw new Error(`Login Failed: ${errorText}`);
         }
         const data = await res.json();
-        // Suppose data returns { token, user: { username } }
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.user.username);
         showDashboard(data.user.username);
       } catch (error) {
         console.error("Login Error:", error);
-        alert("Login Error. Check console.");
+        alert(`Login Error: ${error.message}`);
       }
     });
   }
 
+  // ---------------------------
   // Guest Login
+  // ---------------------------
   const guestButton = document.getElementById("guest-login-button");
   if (guestButton) {
     guestButton.addEventListener("click", function () {
-      // No token, just user=Guest
+      // Set token as "guest" so that refreshing persists guest login
+      localStorage.setItem("token", "guest");
+      localStorage.setItem("username", "Guest");
       showDashboard("Guest");
     });
   }
@@ -143,12 +142,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Show Dashboard Function
   // ---------------------------
   function showDashboard(user) {
-    // Set name in dashboard
+    // Set dashboard username elements
     const userNameEl = document.getElementById("user-name");
     const dashNameEl = document.getElementById("dashboard-username");
     if (userNameEl) userNameEl.textContent = user;
     if (dashNameEl) dashNameEl.textContent = user;
-
     // Hide login container, show dashboard
     const loginContainer = document.getElementById("login-container");
     const dashboard = document.getElementById("dashboard");
@@ -189,9 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
           window.location.href = "striderchat.html";
           break;
         case "sandbox":
-          alert(
-            "Entering Sandbox: Choose your tool (Scientific Calculator or Notebook)"
-          );
+          alert("Entering Sandbox: Choose your tool (Scientific Calculator or Notebook)");
           break;
         default:
           console.log("Unknown module selected.");
@@ -205,10 +201,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const logoutButton = document.getElementById("logout-button");
   if (logoutButton) {
     logoutButton.addEventListener("click", function () {
-      // Clear token & username from localStorage
       localStorage.removeItem("token");
       localStorage.removeItem("username");
-      // Reload the page to show login
       window.location.reload();
     });
   }

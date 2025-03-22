@@ -1,11 +1,3 @@
-/****************************************************************************
-  learn-questions.js - Revised for container-based scrolling & PDF fix
-  1) Scroll Buttons now use .scroll({ top: 0, ... }) and .scrollHeight approach
-     to reliably move to the start/end of #questionsContainer or #quizContainer.
-  2) PDF generation uses extra top margin so brand header doesn't overlap questions.
-  3) Everything else remains intact (quiz mode, search, notebook, etc.).
-****************************************************************************/
-
 let topKey = "";            // e.g. "cat_quant"
 let currentChapterData = null; 
 let currentSubChapter = ""; // e.g. "percentage"
@@ -30,16 +22,15 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.body.classList.add("dark-mode");
   }
 
-  // diversion & section from localStorage
+  // Diversion & section from localStorage
   const diversion = (localStorage.getItem("diversion") || "cat").toLowerCase();
   const section = (localStorage.getItem("section") || "quant").toLowerCase();
   topKey = `${diversion}_${section}`;
 
-  // fetch chapters from backend
+  // Fetch chapters from backend
   try {
     const res = await fetch("https://nexus-hub-q9hx.onrender.com/api/chapters");
     const chapters = await res.json();
-    // find matching chapter
     currentChapterData = chapters.find(ch =>
       ch.diversion.toLowerCase() === diversion && ch.section.toLowerCase() === section
     );
@@ -53,20 +44,20 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // build brand title
+  // Build brand title
   const brandDiv = currentChapterData.diversion.toUpperCase();
   const brandSec = currentChapterData.section.toUpperCase();
   const brandTitleEl = document.getElementById("brandTitleEl");
   brandTitleEl.innerHTML = `
     <a href="index.html" style="color: #ffcc00; text-decoration: none;">NexusHub</a>
     / <a href="learn.html?diversion=${diversion}" style="color: #ffcc00; text-decoration: none;">${brandDiv}</a>
-    / <a href="learn.html?diversion=${diversion}&section=${section}" style="color: #ffcc00; text-decoration: none;">${brandSec}</a>
+    / <a href="learn.html?diversion=${diversion}§ion=${section}" style="color: #ffcc00; text-decoration: none;">${brandSec}</a>
   `;
 
-  // fill sub-chapter dropdown
+  // Fill sub-chapter dropdown
   fillSubChapterDropdown();
 
-  // load first sub-chapter by default
+  // Load first sub-chapter by default
   const firstSub = Object.keys(currentChapterData.subChapters)[0];
   loadSubChapter(firstSub);
   loadNotebookForSubChapter(firstSub);
@@ -108,6 +99,8 @@ function fillSubChapterDropdown() {
 /** On sub-chapter change => load new, save old notebook */
 function onSubChapterChange(newSub) {
   saveNotebookForSubChapter(currentSubChapter);
+  document.getElementById("searchInput").value = "";
+  document.getElementById("statusFilter").value = "all";
   loadSubChapter(newSub);
   loadNotebookForSubChapter(newSub);
 }
@@ -127,10 +120,9 @@ function loadSubChapter(subKey) {
   subChapterData.forEach((item, index) => {
     const card = document.createElement("div");
     card.classList.add("question-card");
-    // store text for searching
     card.setAttribute("data-search", (item.q + " " + (item.a || "")).toLowerCase());
 
-    // question info
+    // Question info
     const qInfo = document.createElement("div");
     qInfo.classList.add("question-info");
     const qNum = document.createElement("div");
@@ -140,7 +132,7 @@ function loadSubChapter(subKey) {
     qText.classList.add("question-text");
     qText.textContent = item.q;
 
-    // answer section
+    // Answer section
     const ansSection = document.createElement("div");
     ansSection.classList.add("answer-section");
 
@@ -148,7 +140,6 @@ function loadSubChapter(subKey) {
     input.type = "text";
     input.classList.add("answer-input");
     input.placeholder = "Type your answer here...";
-    // Press Enter => verify
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") verifyBtn.click();
     });
@@ -197,18 +188,9 @@ function loadSubChapter(subKey) {
       }
     });
 
-    // AskStriderChat button
-    const askBtn = document.createElement("button");
-    askBtn.classList.add("ask-btn");
-    askBtn.textContent = "AskStriderChat";
-    askBtn.addEventListener("click", () => {
-      askStriderChat(item.q);
-    });
-
     ansSection.appendChild(input);
     ansSection.appendChild(verifyBtn);
     ansSection.appendChild(revealBtn);
-    ansSection.appendChild(askBtn);
     ansSection.appendChild(ansResult);
     ansSection.appendChild(ansDisplay);
 
@@ -216,36 +198,45 @@ function loadSubChapter(subKey) {
     qInfo.appendChild(qText);
     qInfo.appendChild(ansSection);
 
-    // status panel => solved, unsolved, revisit
+    // Status panel (with favorite and StriderChat)
     const statusPanel = document.createElement("div");
     statusPanel.classList.add("status-panel");
-    const stTitle = document.createElement("h4");
-    stTitle.textContent = "Status";
-    statusPanel.appendChild(stTitle);
 
-    const stOptions = document.createElement("div");
-    stOptions.classList.add("status-options");
-    const statuses = [
-      { key: "solved", emoji: "✅", bgClass: "solved" },
-      { key: "unsolved", emoji: "❌", bgClass: "unsolved" },
-      { key: "revisit", emoji: "⚠️", bgClass: "revisit" }
-    ];
-    statuses.forEach(st => {
-      const box = document.createElement("div");
-      box.classList.add("status-box", st.bgClass);
-      box.textContent = st.emoji;
-      const storeKey = `status-${topKey}-${subKey}-${index}`;
-      if (localStorage.getItem(storeKey) === st.key) {
-        box.classList.add("active");
-      }
-      box.addEventListener("click", () => {
-        localStorage.setItem(storeKey, st.key);
-        stOptions.querySelectorAll(".status-box").forEach(b => b.classList.remove("active"));
-        box.classList.add("active");
-      });
-      stOptions.appendChild(box);
+    const statusSelect = document.createElement("select");
+    statusSelect.classList.add("question-status");
+    statusSelect.setAttribute("data-index", index);
+    const statuses = ["unsolved", "solved", "revisit"];
+    statuses.forEach(status => {
+      const opt = document.createElement("option");
+      opt.value = status;
+      opt.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+      statusSelect.appendChild(opt);
     });
-    statusPanel.appendChild(stOptions);
+    const storedStatus = localStorage.getItem(`status-${topKey}-${subKey}-${index}`) || "unsolved";
+    statusSelect.value = storedStatus;
+    statusSelect.addEventListener("change", () => updateQuestionStatus(statusSelect));
+
+    const favoriteBtn = document.createElement("button");
+    favoriteBtn.classList.add("favorite-btn");
+    favoriteBtn.setAttribute("data-index", index);
+    const favorites = JSON.parse(localStorage.getItem(`favorites-${topKey}-${subKey}`) || "[]");
+    if (favorites.includes(index)) {
+      favoriteBtn.setAttribute("data-favorited", "true");
+      favoriteBtn.textContent = "★";
+    } else {
+      favoriteBtn.setAttribute("data-favorited", "false");
+      favoriteBtn.textContent = "☆";
+    }
+    favoriteBtn.addEventListener("click", () => toggleFavorite(favoriteBtn));
+
+    const striderChatLink = document.createElement("a");
+    striderChatLink.href = "striderchat.html";
+    striderChatLink.classList.add("striderchat-btn");
+    striderChatLink.textContent = "StriderChat";
+
+    statusPanel.appendChild(statusSelect);
+    statusPanel.appendChild(favoriteBtn);
+    statusPanel.appendChild(striderChatLink);
 
     card.appendChild(qInfo);
     card.appendChild(statusPanel);
@@ -253,11 +244,83 @@ function loadSubChapter(subKey) {
   });
 }
 
-/** Placeholder function => AskStriderChat */
-function askStriderChat(questionText) {
-  console.log(`Pretend opening StriderChat with:
-"${questionText}
-Please give answer."`);
+/** Update question status */
+function updateQuestionStatus(select) {
+  const index = parseInt(select.getAttribute("data-index"));
+  const status = select.value;
+  localStorage.setItem(`status-${topKey}-${currentSubChapter}-${index}`, status);
+}
+
+/** Toggle favorite status */
+function toggleFavorite(btn) {
+  const index = parseInt(btn.getAttribute("data-index"));
+  const favoritesKey = `favorites-${topKey}-${currentSubChapter}`;
+  let favorites = JSON.parse(localStorage.getItem(favoritesKey) || "[]");
+
+  if (favorites.includes(index)) {
+    favorites = favorites.filter(i => i !== index);
+    btn.setAttribute("data-favorited", "false");
+    btn.textContent = "☆";
+  } else {
+    favorites.push(index);
+    btn.setAttribute("data-favorited", "true");
+    btn.textContent = "★";
+  }
+
+  localStorage.setItem(favoritesKey, JSON.stringify(favorites));
+  if (document.getElementById("statusFilter").value === "favorite") {
+    updateQuestionVisibility();
+  }
+}
+
+/** Update question visibility based on search and filter */
+function updateQuestionVisibility() {
+  const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+  const filter = document.getElementById("statusFilter").value;
+  const cards = document.querySelectorAll(".question-card");
+  cards.forEach((card, index) => {
+    const dataSearch = card.getAttribute("data-search") || "";
+    const statusKey = `status-${topKey}-${currentSubChapter}-${index}`;
+    const status = localStorage.getItem(statusKey) || "unsolved";
+    const favorites = JSON.parse(localStorage.getItem(`favorites-${topKey}-${currentSubChapter}`) || "[]");
+    const isFavorited = favorites.includes(index);
+
+    const passesSearch = searchQuery === "" || dataSearch.includes(searchQuery);
+    let passesFilter = true;
+    if (filter === "solved") {
+      passesFilter = status === "solved";
+    } else if (filter === "unsolved") {
+      passesFilter = status === "unsolved";
+    } else if (filter === "revisit") {
+      passesFilter = status === "revisit";
+    } else if (filter === "favorite") {
+      passesFilter = isFavorited;
+    }
+
+    card.style.display = passesSearch && passesFilter ? "flex" : "none";
+  });
+}
+
+/** Search questions */
+function searchQuestions() {
+  updateQuestionVisibility();
+}
+
+/** Clear search */
+function clearSearch() {
+  document.getElementById("searchInput").value = "";
+  updateQuestionVisibility();
+}
+
+/** Filter questions by status */
+function filterQuestionsByStatus(value) {
+  updateQuestionVisibility();
+}
+
+/** Toggle Notebook */
+function toggleNotebook() {
+  notebookVisible = !notebookVisible;
+  document.getElementById("notebookPanel").style.display = notebookVisible ? "block" : "none";
 }
 
 /** Save/Load notebook per sub-chapter */
@@ -272,107 +335,53 @@ function loadNotebookForSubChapter(subKey) {
   document.getElementById("notebookArea").value = saved || "";
 }
 
-/** Search => filter question cards */
-function searchQuestions() {
-  const query = document.getElementById("searchInput").value.toLowerCase();
-  const cards = document.querySelectorAll(".question-card");
-  cards.forEach(card => {
-    const dataSearch = card.getAttribute("data-search") || "";
-    card.style.display = (query === "" || dataSearch.includes(query)) ? "flex" : "none";
-  });
-}
-
-/** Clear search => show all */
-function clearSearch() {
-  document.getElementById("searchInput").value = "";
-  const cards = document.querySelectorAll(".question-card");
-  cards.forEach(card => {
-    card.style.display = "flex";
-  });
-}
-
-/** Toggle Notebook */
-function toggleNotebook() {
-  notebookVisible = !notebookVisible;
-  document.getElementById("notebookPanel").style.display = notebookVisible ? "block" : "none";
-}
-
-/** Scroll to top => container-based approach */
+/** Scroll to top */
 function scrollToTop() {
   const quizC = document.getElementById("quizContainer");
   const mainC = document.getElementById("questionsContainer");
-
   if (quizC.style.display !== "none") {
-    // Quiz visible => scroll top of quiz container
-    quizC.scroll({
-      top: 0,
-      left: 0,
-      behavior: "smooth"
-    });
+    quizC.scroll({ top: 0, behavior: "smooth" });
   } else {
-    // Normal mode => scroll top of questions container
-    mainC.scroll({
-      top: 0,
-      left: 0,
-      behavior: "smooth"
-    });
+    mainC.scroll({ top: 0, behavior: "smooth" });
   }
 }
 
-/** Scroll to bottom => container-based approach */
+/** Scroll to bottom */
 function scrollToBottom() {
   const quizC = document.getElementById("quizContainer");
   const mainC = document.getElementById("questionsContainer");
-
   if (quizC.style.display !== "none") {
-    // Quiz visible => scroll to bottom of quiz container
-    quizC.scroll({
-      top: quizC.scrollHeight,
-      left: 0,
-      behavior: "smooth"
-    });
+    quizC.scroll({ top: quizC.scrollHeight, behavior: "smooth" });
   } else {
-    // Normal mode => scroll to bottom of questions container
-    mainC.scroll({
-      top: mainC.scrollHeight,
-      left: 0,
-      behavior: "smooth"
-    });
+    mainC.scroll({ top: mainC.scrollHeight, behavior: "smooth" });
   }
 }
 
-/** PDF generation => bigger margin for brand text and sub-chapter */
+/** PDF generation with notebook */
 function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p", "mm", "a4");
 
-  // background
   doc.setFillColor(230, 245, 255);
   doc.rect(0, 0, 210, 297, "F");
 
-  // brand title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(255, 0, 0);
   const brandText = document.getElementById("brandTitleEl").textContent || "NexusHub / ???";
-  // place brand text at y=15
   doc.text(brandText, 10, 15);
 
-  // sub-chapter title => y=30
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 255);
   const subChTitle = currentSubChapter ? currentSubChapter.toUpperCase() : "SUBCHAPTER";
   doc.text(`- ${subChTitle}`, 10, 30);
 
-  // start questions at y=45
   let yPos = 45;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(14);
   doc.setTextColor(0, 0, 0);
 
-  const container = document.getElementById("questionsContainer");
-  const cards = container.querySelectorAll(".question-card");
-
+  const cards = document.querySelectorAll(".question-card");
   cards.forEach((card, index) => {
     const qNumEl = card.querySelector(".question-number");
     const qTextEl = card.querySelector(".question-text");
@@ -382,53 +391,55 @@ function generatePDF() {
     const qText = qTextEl ? qTextEl.textContent : "";
     const ansText = ansEl ? ansEl.textContent : "Answer not provided";
 
-    // separator line
-    doc.setDrawColor(150, 150, 150);
-    doc.line(10, yPos - 2, 200, yPos - 2);
-
-    // question
     const questionLines = doc.splitTextToSize(`${qNum}: ${qText}`, 180);
     doc.text(questionLines, 15, yPos);
     yPos += questionLines.length * 6 + 3;
 
-    // answer in green bold
     doc.setTextColor(0, 128, 0);
     doc.setFont("helvetica", "bold");
     const answerLines = doc.splitTextToSize(ansText, 180);
     doc.text(answerLines, 15, yPos);
     yPos += answerLines.length * 6 + 8;
 
-    // revert
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
 
-    // page break if near bottom
     if (yPos > 270) {
       doc.addPage();
-      doc.setFillColor(230, 245, 255);
-      doc.rect(0, 0, 210, 297, "F");
       yPos = 45;
     }
   });
 
+  doc.addPage();
+  doc.setFontSize(16);
+  doc.text("Notebook", 10, 15);
+  doc.setFontSize(12);
+  const notebookText = document.getElementById("notebookArea").value;
+  const splitText = doc.splitTextToSize(notebookText, 180);
+  doc.text(splitText, 10, 25);
+
   doc.save(`${brandText}_${subChTitle}.pdf`);
 }
 
-/** QUIZ Mode => subChapterData => quizData */
+/** Start Quiz */
 function startQuiz() {
   document.getElementById("questionsContainer").style.display = "none";
   document.getElementById("quizContainer").style.display = "block";
-  document.getElementById("quizRestartContainer").style.display = "none";
+  document.getElementById("quizSummary").style.display = "none";
+  document.querySelector(".quiz-question-card").style.display = "block";
 
   if (!subChapterData) {
     alert("No sub-chapter data found. Please pick a valid sub-chapter first.");
     return;
   }
-  quizData = JSON.parse(JSON.stringify(subChapterData));
+  quizData = JSON.parse(JSON.stringify(subChapterData)).map(q => ({
+    ...q,
+    userAnswer: "",
+    status: "unanswered",
+    timeSpent: 0
+  }));
   shuffleArray(quizData);
-  quizData.forEach(q => { q.finalState = "unanswered"; });
-
   quizIndex = 0;
   correctCount = 0;
   incorrectCount = 0;
@@ -450,15 +461,26 @@ function startQuiz() {
 
   loadQuizQuestion(quizIndex);
   updateQuizStats();
+  updateQuizProgressBar();
 }
 
+/** End Quiz */
 function endQuiz() {
-  document.getElementById("quizContainer").style.display = "none";
-  document.getElementById("questionsContainer").style.display = "block";
   if (quizInterval) clearInterval(quizInterval);
   if (questionInterval) clearInterval(questionInterval);
+  document.querySelector(".quiz-question-card").style.display = "none";
+  document.getElementById("quizSummary").style.display = "block";
+  populateQuizSummary();
+  renderSummaryChart();
 }
 
+/** Back to Questions */
+function backToQuestions() {
+  document.getElementById("quizContainer").style.display = "none";
+  document.getElementById("questionsContainer").style.display = "block";
+}
+
+/** Load Quiz Question */
 function loadQuizQuestion(idx) {
   const questionEl = document.getElementById("quizQuestion");
   const ansInput = document.getElementById("quizAnswerInput");
@@ -468,7 +490,6 @@ function loadQuizQuestion(idx) {
   const verifyBtn = document.getElementById("verifyBtn");
   const skipBtn = document.getElementById("skipBtn");
   const nextBtn = document.getElementById("nextBtn");
-  const restartContainer = document.getElementById("quizRestartContainer");
 
   questionTimer = 0;
   document.getElementById("questionTimer").textContent = `Question Time: 0s`;
@@ -484,27 +505,24 @@ function loadQuizQuestion(idx) {
     verifyBtn.style.display = "none";
     skipBtn.style.display = "none";
     nextBtn.style.display = "none";
-    if (quizInterval) clearInterval(quizInterval);
-    if (questionInterval) clearInterval(questionInterval);
-    restartContainer.style.display = "block";
+    endQuiz();
     return;
   }
 
-  restartContainer.style.display = "none";
   let qData = quizData[idx];
   questionEl.textContent = qData.q;
   ansInput.style.display = "inline-block";
   ansInput.value = "";
   ansStatus.style.display = "none";
-  ansStatus.textContent = "";
   ansCorrectEl.style.display = "none";
-  ansCorrectEl.textContent = "";
   revealBtn.style.display = "none";
   verifyBtn.style.display = "inline-block";
   skipBtn.style.display = "inline-block";
   nextBtn.style.display = "none";
+  updateQuizProgressBar();
 }
 
+/** Update Quiz Stats */
 function updateQuizStats() {
   document.getElementById("quizProgress").textContent = `Question ${quizIndex+1}/${quizData.length}`;
   document.getElementById("quizCorrect").textContent = `Correct: ${correctCount}`;
@@ -512,11 +530,18 @@ function updateQuizStats() {
   document.getElementById("quizSkipped").textContent = `Skipped: ${skippedCount}`;
 }
 
+/** Update Quiz Progress Bar */
+function updateQuizProgressBar() {
+  const progressFill = document.getElementById("quizProgressFill");
+  const progress = (quizIndex / quizData.length) * 100;
+  progressFill.style.width = `${progress}%`;
+}
+
+/** Verify Quiz Answer */
 function verifyQuizAnswer() {
   if (quizIndex >= quizData.length) return;
   const ansInput = document.getElementById("quizAnswerInput");
   const ansStatus = document.getElementById("quizAnswerStatus");
-  const ansCorrectEl = document.getElementById("quizCorrectAnswer");
   const revealBtn = document.getElementById("revealBtn");
   const verifyBtn = document.getElementById("verifyBtn");
   const skipBtn = document.getElementById("skipBtn");
@@ -528,7 +553,7 @@ function verifyQuizAnswer() {
   ansStatus.style.display = "block";
   ansStatus.className = "answer-status";
 
-  if (qData.finalState && qData.finalState !== "unanswered") {
+  if (qData.status !== "unanswered") {
     ansStatus.classList.add("incorrect");
     ansStatus.textContent = "This question was already answered or skipped.";
     return;
@@ -540,30 +565,34 @@ function verifyQuizAnswer() {
     return;
   }
 
+  qData.userAnswer = userAns;
+  qData.timeSpent = questionTimer;
+
   if (!qData.a) {
     ansStatus.classList.add("incorrect");
     ansStatus.textContent = "❔ Answer not provided by system";
-    qData.finalState = "noanswer";
+    qData.status = "noanswer";
+    incorrectCount++;
   } else if (userAns.toLowerCase() === qData.a.toLowerCase()) {
     ansStatus.classList.add("correct");
     ansStatus.textContent = "😊 Correct!";
+    qData.status = "correct";
     correctCount++;
-    qData.finalState = "correct";
-    skipBtn.style.display = "none";
   } else {
     ansStatus.classList.add("incorrect");
     ansStatus.textContent = "😞 Incorrect!";
+    qData.status = "incorrect";
     incorrectCount++;
-    qData.finalState = "incorrect";
-    skipBtn.style.display = "none";
   }
 
   revealBtn.style.display = "inline-block";
   verifyBtn.style.display = "none";
+  skipBtn.style.display = "none";
   nextBtn.style.display = "inline-block";
   updateQuizStats();
 }
 
+/** Reveal Quiz Answer */
 function revealQuizAnswer() {
   if (quizIndex >= quizData.length) return;
   const ansCorrectEl = document.getElementById("quizCorrectAnswer");
@@ -580,34 +609,95 @@ function revealQuizAnswer() {
   }
 }
 
+/** Skip Quiz Question */
 function skipQuizQuestion() {
   if (quizIndex >= quizData.length) return;
   const ansStatus = document.getElementById("quizAnswerStatus");
   let qData = quizData[quizIndex];
 
-  if (qData.finalState === "unanswered") {
+  if (qData.status === "unanswered") {
     skippedCount++;
-    qData.finalState = "skipped";
+    qData.status = "skipped";
+    qData.timeSpent = questionTimer;
+    qData.userAnswer = "";
     ansStatus.style.display = "block";
     ansStatus.className = "answer-status incorrect";
     ansStatus.textContent = "You skipped this question.";
-  } else {
-    ansStatus.style.display = "block";
-    ansStatus.className = "answer-status incorrect";
-    ansStatus.textContent = "You already answered/skipped this question.";
   }
   nextQuizQuestion();
 }
 
+/** Next Quiz Question */
 function nextQuizQuestion() {
   quizIndex++;
   loadQuizQuestion(quizIndex);
   updateQuizStats();
 }
 
-/** Restart quiz => call startQuiz again */
-function restartQuiz() {
-  startQuiz();
+/** Populate Quiz Summary */
+function populateQuizSummary() {
+  document.getElementById("summaryTotalTime").textContent = `Total Time: ${overallTimer}s`;
+  document.getElementById("summaryCorrect").textContent = `Correct: ${correctCount}`;
+  document.getElementById("summaryIncorrect").textContent = `Incorrect: ${incorrectCount}`;
+  document.getElementById("summarySkipped").textContent = `Skipped: ${skippedCount}`;
+  const attempted = correctCount + incorrectCount;
+  const accuracy = attempted > 0 ? (correctCount / attempted * 100).toFixed(2) : 0;
+  document.getElementById("summaryAccuracy").textContent = `Accuracy: ${accuracy}%`;
+
+  const summaryQuestions = document.querySelector(".summary-questions");
+  summaryQuestions.innerHTML = "";
+  quizData.forEach((q, index) => {
+    const qDiv = document.createElement("div");
+    qDiv.classList.add("summary-question");
+    if (q.status === "correct") {
+      qDiv.classList.add("correct");
+    } else if (q.status === "incorrect") {
+      qDiv.classList.add("incorrect");
+    } else if (q.status === "skipped") {
+      qDiv.classList.add("skipped");
+    }
+    qDiv.innerHTML = `
+      <p><strong>Question ${index+1}:</strong> ${q.q}</p>
+      <p><strong>Your Answer:</strong> ${q.userAnswer || "N/A"}</p>
+      <p><strong>Correct Answer:</strong> ${q.a || "N/A"}</p>
+      <p><strong>Status:</strong> ${q.status}</p>
+      <p><strong>Time Spent:</strong> ${q.timeSpent}s</p>
+    `;
+    summaryQuestions.appendChild(qDiv);
+  });
+}
+
+/** Render Summary Chart */
+function renderSummaryChart() {
+  const ctx = document.getElementById('summaryChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Correct', 'Incorrect', 'Skipped'],
+      datasets: [{
+        label: 'Quiz Results',
+        data: [correctCount, incorrectCount, skippedCount],
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(255, 206, 86, 0.6)'
+        ],
+        borderColor: [
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 99, 132, 1)',
+          'rgba(255, 206, 86, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 }
 
 /** Utility => shuffle array in place */

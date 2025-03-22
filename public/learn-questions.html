@@ -13,6 +13,9 @@
 
   <!-- Page-Specific CSS -->
   <link rel="stylesheet" href="styles/learn-questions.css" />
+
+  <!-- Chart.js for summary chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- Header (Pinned, no footer) -->
@@ -29,11 +32,20 @@
     <div class="header-bottom">
       <div class="credit">By-Adarsh Kumar</div>
 
-      <!-- The "controls" area: sub-chapter dropdown, search, StriderChat, dark mode, PDF -->
+      <!-- The "controls" area: sub-chapter dropdown, status filter, search, StriderChat, dark mode, PDF -->
       <div class="controls">
         <!-- Sub-Chapter selection dropdown (like "percentage," "ratio," etc.) -->
         <select class="chapter-select" id="subChapterSelect" onchange="onSubChapterChange(this.value)">
           <!-- Filled dynamically in JS -->
+        </select>
+
+        <!-- Status filter dropdown (solved, unsolved, revisit, favorite) -->
+        <select class="status-filter" id="statusFilter" onchange="filterQuestionsByStatus(this.value)">
+          <option value="all">All Questions</option>
+          <option value="solved">Solved</option>
+          <option value="unsolved">Unsolved</option>
+          <option value="revisit">Revisit</option>
+          <option value="favorite">Favorites</option>
         </select>
 
         <!-- Search container -->
@@ -43,9 +55,6 @@
           <!-- CLEAR button to reset the search -->
           <button class="icon-btn" onclick="clearSearch()">Clear</button>
         </div>
-
-        <!-- StriderChat link -->
-        <a href="striderchat.html" class="icon-btn">StriderChat</a>
 
         <!-- Dark Mode toggle -->
         <button class="icon-btn" onclick="toggleDarkMode()">🌓</button>
@@ -70,14 +79,36 @@
 
   <!-- Main Questions Container (scrollable) -->
   <div class="container" id="questionsContainer">
-    <!-- Dynamically loaded question cards go here -->
+    <!-- Example question card structure (dynamically loaded via JS) -->
+    <div class="question-card">
+      <div class="question-text">Sample Question</div>
+      <div class="question-controls">
+        <!-- Controls like expand or collapse could go here if needed -->
+      </div>
+      <div class="status-panel">
+        <!-- Status options as clickable buttons -->
+        <button class="status-btn" data-status="unsolved" onclick="setStatus(this, 'unsolved')">Unsolved</button>
+        <button class="status-btn" data-status="solved" onclick="setStatus(this, 'solved')">Solved</button>
+        <button class="status-btn" data-status="revisit" onclick="setStatus(this, 'revisit')">Revisit</button>
+        <button class="favorite-btn" onclick="toggleFavorite(this)">☆</button>
+        <a href="striderchat.html" class="striderchat-btn">StriderChat</a>
+      </div>
+    </div>
+    <!-- More question cards will be added dynamically -->
   </div>
 
   <!-- Quiz Container (hidden by default) -->
-  <div id="quizContainer">
+  <div id="quizContainer" style="display:none;">
     <div class="quiz-header">
       <h2>Quiz Mode</h2>
-      <button class="back-btn" onclick="endQuiz()">Back to Questions</button>
+      <!-- Progress bar -->
+      <div class="progress-bar">
+        <div class="progress-fill" id="quizProgressFill"></div>
+      </div>
+      <!-- End Quiz button -->
+      <button class="back-btn" onclick="endQuiz()">End Quiz</button>
+      <!-- Back to Question button in quiz mode -->
+      <button class="back-btn" onclick="backToQuestions()">Back to Questions</button>
     </div>
 
     <div class="quiz-stats">
@@ -118,9 +149,24 @@
       </div>
     </div>
 
-    <!-- Once quiz is done, show a "Restart Quiz" button -->
-    <div style="margin-top:1rem; display:none;" id="quizRestartContainer">
-      <button class="next-btn" style="background:#ff9800;" onclick="restartQuiz()">Restart Quiz</button>
+    <!-- Quiz Summary (hidden by default) -->
+    <div id="quizSummary" style="display:none;">
+      <h2>Quiz Summary</h2>
+      <div class="summary-stats">
+        <p id="summaryTotalTime">Total Time: 0s</p>
+        <p id="summaryCorrect">Correct: 0</p>
+        <p id="summaryIncorrect">Incorrect: 0</p>
+        <p id="summarySkipped">Skipped: 0</p>
+        <p id="summaryAccuracy">Accuracy: 0%</p>
+      </div>
+      <div class="summary-chart">
+        <canvas id="summaryChart"></canvas>
+      </div>
+      <div class="summary-questions">
+        <!-- Dynamically loaded question lineup -->
+      </div>
+      <!-- Back to Questions button -->
+      <button class="back-btn" onclick="backToQuestions()">Back to Questions</button>
     </div>
   </div>
 

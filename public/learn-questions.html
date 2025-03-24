@@ -18,6 +18,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div class="loading-screen">
+    <div class="skeleton">
+      <div class="skeleton-header"></div>
+      <div class="skeleton-question"></div>
+      <div class="skeleton-controls">
+        <div class="skeleton-btn"></div>
+        <div class="skeleton-btn"></div>
+        <div class="skeleton-btn"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Header (Pinned, no footer) -->
   <div class="header">
     <!-- First row -->
@@ -86,10 +99,12 @@
         <!-- Controls like expand or collapse could go here if needed -->
       </div>
       <div class="status-panel">
-        <!-- Status options as clickable buttons -->
-        <button class="status-btn" data-status="unsolved" onclick="setStatus(this, 'unsolved')">Unsolved</button>
-        <button class="status-btn" data-status="solved" onclick="setStatus(this, 'solved')">Solved</button>
-        <button class="status-btn" data-status="revisit" onclick="setStatus(this, 'revisit')">Revisit</button>
+        <!-- Status buttons with emojis and glow effect, favorite, and StriderChat aligned together -->
+        <div class="status-options">
+          <button class="status-btn solved" onclick="updateQuestionStatus(this, 'solved')">✅</button>
+          <button class="status-btn unsolved" onclick="updateQuestionStatus(this, 'unsolved')">❌</button>
+          <button class="status-btn revisit" onclick="updateQuestionStatus(this, 'revisit')">🔄</button>
+        </div>
         <button class="favorite-btn" onclick="toggleFavorite(this)">☆</button>
         <a href="striderchat.html" class="striderchat-btn">StriderChat</a>
       </div>

@@ -73,6 +73,20 @@ window.addEventListener("DOMContentLoaded", async () => {
       searchQuestions();
     }
   });
+
+  // Hide loading screen when content is loaded
+  document.querySelector('.loading-screen').style.display = 'none';
+
+  // Add event listeners for status buttons (assuming HTML uses buttons with emojis)
+  document.querySelectorAll('.status-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons in the same card
+      const card = button.closest('.question-card');
+      card.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      button.classList.add('active');
+    });
+  });
 });
 
 /** Toggle dark mode */
@@ -362,24 +376,27 @@ function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p", "mm", "a4");
 
-  doc.setFillColor(230, 245, 255);
+  // Set background color based on dark mode
+  if (document.body.classList.contains("dark-mode")) {
+    doc.setFillColor(0, 0, 0); // Black background
+    doc.setTextColor(255, 255, 255); // White text
+  } else {
+    doc.setFillColor(230, 245, 255); // Light blue background
+    doc.setTextColor(0, 0, 0); // Black text
+  }
   doc.rect(0, 0, 210, 297, "F");
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(255, 0, 0);
-  const brandText = document.getElementById("brandTitleEl").textContent || "NexusHub / ???";
-  doc.text(brandText, 10, 15);
-
-  doc.setFontSize(16);
-  doc.setTextColor(0, 0, 255);
-  const subChTitle = currentSubChapter ? currentSubChapter.toUpperCase() : "SUBCHAPTER";
-  doc.text(`- ${subChTitle}`, 10, 30);
-
-  let yPos = 45;
+  // Use a font that supports special characters
   doc.setFont("helvetica", "normal");
+
+  // Brand title with increased spacing
+  doc.setFontSize(18);
+  doc.text("NexusHub", 10, 15);
   doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
+  doc.text(`- ${currentSubChapter.toUpperCase()} / ${currentChapterData.section.toUpperCase()}`, 10, 25);
+
+  let yPos = 40;
+  doc.setFontSize(14);
 
   const cards = document.querySelectorAll(".question-card");
   cards.forEach((card, index) => {
@@ -403,11 +420,11 @@ function generatePDF() {
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(document.body.classList.contains("dark-mode") ? 255 : 0);
 
     if (yPos > 270) {
       doc.addPage();
-      yPos = 45;
+      yPos = 15;
     }
   });
 
@@ -419,7 +436,7 @@ function generatePDF() {
   const splitText = doc.splitTextToSize(notebookText, 180);
   doc.text(splitText, 10, 25);
 
-  doc.save(`${brandText}_${subChTitle}.pdf`);
+  doc.save(`NexusHub_${currentSubChapter.toUpperCase()}.pdf`);
 }
 
 /** Start Quiz */
